@@ -2,12 +2,12 @@ package kamathadarsh.Conduit.Controller;
 
 import kamathadarsh.Conduit.Request.GetArticleRequest;
 import kamathadarsh.Conduit.Request.PostArticleRequest;
+import kamathadarsh.Conduit.Request.UpdateArticleRequest;
 import kamathadarsh.Conduit.Response.ArticleResponse;
 import kamathadarsh.Conduit.Response.CustomResponse;
 import kamathadarsh.Conduit.Response.FailureResponse;
 import kamathadarsh.Conduit.Service.ArticleService;
 import lombok.AllArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -81,6 +81,34 @@ public class ArticleController {
 
         return ResponseEntity.status(statusOfRequest).body(response);
     }
+
+    @PutMapping("/api/user/{username}/articles/{slug}")
+    public ResponseEntity<CustomResponse> updateArticle(@PathVariable("username") String currUserUsername,
+                                                         @PathVariable("slug") String articleSlug,
+                                                         @RequestBody UpdateArticleRequest updateArticleRequest)
+    {
+
+        CustomResponse response = articleService.updateArticle(currUserUsername, articleSlug, updateArticleRequest);
+
+        HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
+
+        return ResponseEntity.status(statusOfRequest).body(response);
+
+
+    }
+
+    @DeleteMapping("/api/user/{username}/articles/{slug}")
+    public ResponseEntity<CustomResponse> deleteArticle(@PathVariable("username") String currUserUsername,
+                                                        @PathVariable("slug") String articleSLug)
+    {
+
+        CustomResponse response = articleService.deleteArticle(currUserUsername, articleSLug);
+
+        HttpStatus responseToRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
+
+        return ResponseEntity.status(responseToRequest).body(response);
+    }
+
 
 
 }
