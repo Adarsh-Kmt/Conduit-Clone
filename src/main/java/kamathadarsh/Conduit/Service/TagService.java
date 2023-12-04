@@ -50,4 +50,9 @@ public class TagService {
         return tag;
 
     }
+
+    public void deleteTag(Tag tag){
+
+        tagRepository.delete(tag);
+    }
 }
