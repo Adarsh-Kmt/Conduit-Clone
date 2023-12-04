@@ -28,46 +28,6 @@ import java.util.*;
 public class ArticleService {
 
 
-//    public String slugify(String input) {
-//
-//        String slug = input.trim().toLowerCase().replace(" ", "-");
-//
-//        //----------------------------------------------------------------
-//        // finding the number of articles with the same title, to create an appropriate title
-//
-//        int numberOfArticlesWithSameTitle = articleRepository
-//                .getNumberOfArticlesWithSameName(input);;
-//
-//        if(numberOfArticlesWithSameTitle != 0){
-//            String finalSlug = slug + "-" + numberOfArticlesWithSameTitle;
-//            return finalSlug;
-//        }
-//
-//        //----------------------------------------------------------------
-//
-//        return slug;
-//    }
-
-    public String slugify2(String articleName){
-
-        String slug = articleName.trim().toLowerCase().replace(" ", "-");
-
-        Optional<String> preExistingSlugsExists = articleRepository.getSlugOfLastCreatedArticleWithSameName(articleName);
-
-        if(!preExistingSlugsExists.isPresent()) return slug;
-
-        String preExistingSlug = preExistingSlugsExists.get();
-        System.out.println("last existing slug is: " + preExistingSlug);
-        String indexNumString = preExistingSlug.replace(slug, "");
-        if(indexNumString.isBlank()) return slug + "-1";
-        String indexNumString2 = indexNumString.replace("-", "");
-        System.out.println("indexNumString is: " + indexNumString);
-        int indexNum = Integer.parseInt(indexNumString2);
-        System.out.println("index num is: " + indexNum);
-        String newSlug = slug + "-" + (indexNum+1);
-
-        return newSlug;
-    }
     final ArticleRepository articleRepository;
 
     final UserService userService;
@@ -301,6 +261,13 @@ public class ArticleService {
         }
 
     }
+
+    public String slugify(String articleName){
+
+        String slug = articleName.trim().toLowerCase().replace(" ", "-");
+        return slug + "-" + UUID.randomUUID();
+    }
+
 
 
     public CustomResponse unfavouriteArticle(String currUserUsername, String articleSlug){
