@@ -72,6 +72,8 @@ public class ArticleService {
 
     final UserService userService;
 
+    final CacheService cacheService;
+
     final EntityManager entityManager;
 
     final UserRepository userRepository;
@@ -214,11 +216,18 @@ public class ArticleService {
     public CustomResponse getArticle(String currUserUsername, String articleSlug){
 
         try{
+
+            CustomResponse response = cacheService.getArticleFromCacheIfAvailable(currUserUsername, articleSlug);
+
+            if(response instanceof ArticleResponse) return response;
+
             Optional<Article> articleExists = articleRepository.findArticleBySlug(articleSlug);
 
             if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found.");
 
             Article article = articleExists.get();
+
+            cacheService.addArticleToCache(article);
             return createArticleResponse(currUserUsername, article);
 
         } catch (ArticleNotFoundException e) {
