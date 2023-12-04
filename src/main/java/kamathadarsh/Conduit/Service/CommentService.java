@@ -65,7 +65,6 @@ public class CommentService {
         catch(ArticleNotFoundException e){
 
             return FailureResponse.builder()
-                    .Exception(e)
                     .message(e.getMessage())
                     .status(HttpStatus.NOT_FOUND)
                     .build();
@@ -99,7 +98,6 @@ public class CommentService {
         catch(ArticleNotFoundException e){
 
             return FailureResponse.builder()
-                    .Exception(e)
                     .message(e.getMessage())
                     .status(HttpStatus.NOT_FOUND)
                     .build();
@@ -124,7 +122,6 @@ public class CommentService {
         catch(CommentNotFoundException e){
 
             return FailureResponse.builder()
-                    .Exception(e)
                     .message(e.getMessage())
                     .status(HttpStatus.NOT_FOUND)
                     .build();

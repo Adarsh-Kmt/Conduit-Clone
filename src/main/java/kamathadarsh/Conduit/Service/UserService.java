@@ -56,7 +56,6 @@ public class UserService {
         catch (UserNotFoundException e) {
 
             return FailureResponse.builder()
-                    .Exception(e)
                     .message(e.getMessage())
                     .status(HttpStatus.NOT_FOUND)
                     .build();
@@ -105,7 +104,6 @@ public class UserService {
         catch(UserNotFoundException e){
 
             return FailureResponse.builder()
-                    .Exception(e)
                     .message(e.getMessage())
                     .status(HttpStatus.NOT_FOUND)
                     .build();
@@ -137,7 +135,6 @@ public class UserService {
         catch(UserNotFoundException e){
 
             return FailureResponse.builder()
-                    .Exception(e)
                     .message(e.getMessage())
                     .status(HttpStatus.NOT_FOUND)
                     .build();
@@ -195,7 +192,6 @@ public class UserService {
         catch(UserNotFoundException e){
 
             return FailureResponse.builder()
-                    .Exception(e)
                     .message(e.getMessage())
                     .status(HttpStatus.NOT_FOUND)
                     .build();
