@@ -48,7 +48,6 @@
 			<version>3.1.0</version>
 		</dependency>
 
-
 		<dependency>
 			<groupId>org.redisson</groupId>
 			<artifactId>redisson</artifactId>
@@ -62,6 +61,19 @@
 			<version>6.3.0.RELEASE</version>
 		</dependency>
 
+		<!-- JOOQ -->
+		<dependency>
+			<groupId>org.jooq</groupId>
+			<artifactId>jooq</artifactId>
+			<version>3.15.1</version> <!-- Use the latest version available -->
+		</dependency>
+
+		<!-- JOOQ Code Generator -->
+		<dependency>
+			<groupId>org.jooq</groupId>
+			<artifactId>jooq-codegen</artifactId>
+			<version>3.15.1</version> <!-- Use the same version as the JOOQ library -->
+		</dependency>
 		<dependency>
 			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
@@ -69,10 +81,55 @@
 		</dependency>
 
 
+
 	</dependencies>
 
 	<build>
+
 		<plugins>
+			<!-- JOOQ Code Generator Plugin -->
+			<plugin>
+				<groupId>org.jooq</groupId>
+				<artifactId>jooq-codegen-maven</artifactId>
+				<version>3.15.1</version> <!-- Use the latest version available -->
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>com.mysql</groupId>
+						<artifactId>mysql-connector-j</artifactId>
+						<scope>runtime</scope>
+
+					</dependency>
+				</dependencies>
+				<configuration>
+					<!-- Specify database details and code generation settings here -->
+					<jdbc>
+						<driver>com.mysql.cj.jdbc.Driver</driver>
+						<url>jdbc:mysql://localhost:3306/conduitdb</url>
+						<user>root</user>
+						<password>52abx-32qj</password>
+					</jdbc>
+					<generator>
+						<name>org.jooq.codegen.JavaGenerator</name>
+						<database>
+							<includes>.*</includes>
+							<excludes></excludes>
+							<inputSchema>public</inputSchema>
+						</database>
+						<target>
+							<packageName>kamathadarsh.Conduit.JOOQ</packageName>
+							<directory>target/generated-sources/jooq</directory>
+						</target>
+					</generator>
+
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
