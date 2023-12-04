@@ -126,7 +126,6 @@ public class ArticleService {
 
     }
 
-    public ArticleResponse createArticle(String currUserUsername, PostArticleRequest postArticleRequest){
 
 
     @Transactional
@@ -223,7 +222,7 @@ public class ArticleService {
 
         } catch (ArticleNotFoundException e) {
 
-            return new FailureResponse(e, e.getMessage(), HttpStatus.NOT_FOUND);
+            return new FailureResponse(e.getMessage(), HttpStatus.NOT_FOUND);
         }
 
 
@@ -271,7 +270,6 @@ public class ArticleService {
         catch(ArticleNotFoundException e){
 
             return FailureResponse.builder()
-                    .Exception(e)
                     .message(e.getMessage())
                     .status(HttpStatus.NOT_FOUND)
                     .build();
@@ -320,7 +318,6 @@ public class ArticleService {
         catch(ArticleNotFoundException e){
 
             return FailureResponse.builder()
-                    .Exception(e)
                     .message(e.getMessage())
                     .status(HttpStatus.NOT_FOUND)
                     .build();
