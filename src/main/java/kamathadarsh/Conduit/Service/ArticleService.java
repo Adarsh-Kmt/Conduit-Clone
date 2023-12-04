@@ -129,6 +129,10 @@ public class ArticleService {
     public ArticleResponse createArticle(String currUserUsername, PostArticleRequest postArticleRequest){
 
 
+    @Transactional
+    public ArticleResponse createArticle(String currUserUsername, PostArticleRequest postArticleRequest)
+    {
+
         User author = userRepository.findByUsername(currUserUsername).get();
 
         List<String> newTagList = postArticleRequest.getTagList();
@@ -140,10 +144,10 @@ public class ArticleService {
         // if not, a new tag is created.
         // all tags are added to the finalTagList, which will eventually be used as value for tags field of the
         // article.
+        if(postArticleRequest.getTagList() != null && !postArticleRequest.getTagList().isEmpty()){
+            for(String tagName : newTagList){
 
-        for(String tagName : newTagList){
-
-            Optional<Tag> tagExists = tagRepository.findTagByTagName(tagName);
+                Optional<Tag> tagExists = tagService.findTagByTagName(tagName);
 
             if(tagExists.isPresent() == false){
 
@@ -151,17 +155,19 @@ public class ArticleService {
 
                 finalTagList.add(newTag);
 
+                }
+                else finalTagList.add(tagExists.get());
             }
-            else finalTagList.add(tagExists.get());
         }
         //---------------------------------------------------------------------------------------------------------
         // creating the article record.
 
-        System.out.println("slug of current article is : " + slugify2(postArticleRequest.getTitle()));
+        System.out.println("slug of current article is : " + slugify(postArticleRequest.getTitle()));
+
 
         Article newArticle = Article.builder()
                 .title(postArticleRequest.getTitle())
-                .slug(slugify2(postArticleRequest.getTitle()))
+                .slug(slugify(postArticleRequest.getTitle()))
                 .body(postArticleRequest.getBody())
                 .author(author)
                 .createdAt(Instant.now())
@@ -172,22 +178,26 @@ public class ArticleService {
                 .tags(finalTagList)
                 .build();
 
-        articleRepository.save(newArticle);
+
 
 
         //---------------------------------------------------------------------------------------------------------
         // adding the new article to the list of articles with a particular tag, for each tag in newTagList.
         // newTagList is the list that was sent in the postArticleRequest
 
-        for(String tagName : newTagList){
+        if(newTagList != null && !newTagList.isEmpty()){
+
+            for(String tagName : newTagList){
 
            tagService.addArticleToList(tagService.findTagByTagName(tagName).get(), newArticle);
 
 
+            }
+
         }
+
         //---------------------------------------------------------------------------------------------------------
-
-
+        articleRepository.save(newArticle);
         return createArticleResponse(currUserUsername, newArticle);
 
 
