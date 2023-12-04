@@ -1,5 +1,6 @@
 package kamathadarsh.Conduit.Service;
 
+
 import kamathadarsh.Conduit.Entity.Article;
 import kamathadarsh.Conduit.Entity.Tag;
 import kamathadarsh.Conduit.Repository.TagRepository;
@@ -16,12 +17,13 @@ import java.util.Set;
 @AllArgsConstructor
 public class TagService {
 
-    private TagRepository tagRepository;
+
+    private final TagRepository tagRepository;
+
 
     public TagResponse getAllTags(){
 
         List<Tag> tagList = tagRepository.getAllTags();
-
         return new TagResponse(tagList);
     }
 
@@ -35,6 +37,7 @@ public class TagService {
         Tag newTag = new Tag(tagName, new HashSet<>());
 
         tagRepository.save(newTag);
+
         return newTag;
 
     }
