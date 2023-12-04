@@ -1,5 +1,7 @@
 package kamathadarsh.Conduit.Controller;
 
+import kamathadarsh.Conduit.Entity.User;
+import kamathadarsh.Conduit.Request.CreateUserRequest;
 import kamathadarsh.Conduit.Request.UserUpdateRequest;
 import kamathadarsh.Conduit.Response.CustomResponse;
 import kamathadarsh.Conduit.Response.FailureResponse;
@@ -59,5 +61,13 @@ public class UserController {
 
         return ResponseEntity.status(statusOfRequest).body(response);
 
+    }
+
+    @PostMapping("/test/addUser")
+    public ResponseEntity<User> addUser(@RequestBody CreateUserRequest createUserRequest){
+
+        User user = userService.createUser(createUserRequest);
+
+        return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 }

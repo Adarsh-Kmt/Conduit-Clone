@@ -3,6 +3,7 @@ package kamathadarsh.Conduit.Service;
 import kamathadarsh.Conduit.Entity.User;
 import kamathadarsh.Conduit.Exception.UserNotFoundException;
 import kamathadarsh.Conduit.Repository.UserRepository;
+import kamathadarsh.Conduit.Request.CreateUserRequest;
 import kamathadarsh.Conduit.Request.UserUpdateRequest;
 import kamathadarsh.Conduit.Response.CustomResponse;
 import kamathadarsh.Conduit.Response.FailureResponse;
@@ -12,7 +13,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -202,4 +203,23 @@ public class UserService {
         }
 
     }
+
+    public User createUser(CreateUserRequest createUserRequest){
+
+        User user = User.builder()
+                .username(createUserRequest.getUsername())
+                .followingUserUsernameList(new HashSet<>())
+                .followerUserUsernameList(new HashSet<>())
+                .favouriteArticleList(new HashSet<>())
+                .emailId(createUserRequest.getEmailId())
+                .password(createUserRequest.getPassword())
+                .bio(createUserRequest.getBio())
+                .image(createUserRequest.getImageLink())
+                .build();
+
+        userRepository.save(user);
+        return user;
+    }
+
+
 }
