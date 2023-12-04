@@ -90,49 +90,63 @@ public class ArticleService {
 
         CriteriaQuery<Article> criteriaQuery = cb.createQuery(Article.class);
 
+        List<Predicate> finalPredicateList = new ArrayList<>();
+
         Root<Article> articleRoot = criteriaQuery.from(Article.class);
 
-        Join<Article, Tag> articleTagJoin = articleRoot.join("tags", JoinType.INNER);
-
         if(getArticleRequest.getTags() != null && !getArticleRequest.getTags().isEmpty()){
+
+            Join<Article, Tag> articleTagJoin = articleRoot.join("tags", JoinType.INNER);
+            System.out.println("tag predicate applied");
             Predicate tagsPredicate = articleTagJoin.get("tagName").in(getArticleRequest.getTags());
 
-            criteriaQuery.where(tagsPredicate);
+            finalPredicateList.add(tagsPredicate);
+
+
         }
 
 
-        Join<Article, User> favouriteArticleUserJoin = articleRoot.join("favouriteByList", JoinType.INNER);
 
-        if(getArticleRequest.getIsFavourited() != null && getArticleRequest.getIsFavourited() == true){
 
-            criteriaQuery.where(cb.equal(favouriteArticleUserJoin.get("username"), currUserUsername));
+        if(getArticleRequest.getIsFavourited() != null && getArticleRequest.getIsFavourited()){
+
+
+
+            System.out.println("favourited predicate applied");
+
+            Join<Article, User> favouriteArticleUserJoin = articleRoot.join("favouriteByList", JoinType.INNER);
+            Predicate favouriteOrNotPredicate = cb.equal(favouriteArticleUserJoin.get("username"), currUserUsername);
+
+            finalPredicateList.add(favouriteOrNotPredicate);
+
         }
-
-        Join<Article, User> ArticleAuthorUserJoin = articleRoot.join("author", JoinType.INNER);
         if(getArticleRequest.getAuthorUsername() != null && !getArticleRequest.getAuthorUsername().isBlank()){
 
-            criteriaQuery.where(cb.equal(ArticleAuthorUserJoin.get("username"), getArticleRequest.getAuthorUsername()));
+            System.out.println("author predicated applied");
+            Join<Article, User> articleAuthorUserJoin = articleRoot.join("author", JoinType.INNER);
+            Predicate authorPredicate = cb.equal(articleAuthorUserJoin.get("username"), getArticleRequest.getAuthorUsername());
+
+            finalPredicateList.add(authorPredicate);
+
+
+        }
+        Predicate finalPredicate = null;
+
+        for(int i = 0; i < finalPredicateList.size(); i++){
+
+            if(i == 0) finalPredicate = finalPredicateList.get(0);
+
+            else{
+                finalPredicate = cb.and(finalPredicate, finalPredicateList.get(i));
+            }
         }
 
+        criteriaQuery.where(finalPredicate);
 
         TypedQuery<Article> articleTypedQuery = entityManager.createQuery(criteriaQuery);
 
-        int limit = 20;
-        int offset = 0;
-
-        // applying offset, if requested
-        if(getArticleRequest.getOffset() != null) offset = getArticleRequest.getOffset();
-
-        // applying limit, if requested.
-        if(getArticleRequest.getLimit() != null) limit = getArticleRequest.getLimit();
-
-        articleTypedQuery.setMaxResults(limit);
-        articleTypedQuery.setFirstResult(offset);
-
         List<Article> finalArticleList = articleTypedQuery.getResultList();
 
-        //-------------------------------------------------------------------------------------------------------
-        // converting articles to articleResponses.
         List<ArticleResponse> finalArticleResponseList = new ArrayList<>();
 
         for(Article article : finalArticleList){
