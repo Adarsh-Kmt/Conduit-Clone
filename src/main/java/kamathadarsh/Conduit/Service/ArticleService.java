@@ -3,15 +3,18 @@ package kamathadarsh.Conduit.Service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
+import jakarta.transaction.Transactional;
 import kamathadarsh.Conduit.Entity.Article;
+import kamathadarsh.Conduit.Entity.Comment;
 import kamathadarsh.Conduit.Entity.Tag;
 import kamathadarsh.Conduit.Entity.User;
 import kamathadarsh.Conduit.Exception.ArticleNotFoundException;
 import kamathadarsh.Conduit.Repository.ArticleRepository;
-import kamathadarsh.Conduit.Repository.TagRepository;
+import kamathadarsh.Conduit.Repository.CommentRepository;
 import kamathadarsh.Conduit.Repository.UserRepository;
 import kamathadarsh.Conduit.Request.GetArticleRequest;
 import kamathadarsh.Conduit.Request.PostArticleRequest;
+import kamathadarsh.Conduit.Request.UpdateArticleRequest;
 import kamathadarsh.Conduit.Response.*;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,10 +41,14 @@ public class ArticleService {
 
     final UserRepository userRepository;
 
+    final CommentRepository commentRepository;
     final TagService tagService;
 
-    final TagRepository tagRepository;
-    public List<ArticleResponse> getAllArticles(String currUserUsername, GetArticleRequest getArticleRequest){
+
+
+    public List<ArticleResponse> getAllArticles(String currUserUsername,
+                                                GetArticleRequest getArticleRequest)
+    {
 
         //------------------------------------------------------------------------------------------------------
         // using Criteria to get Articles according to articleRequest
