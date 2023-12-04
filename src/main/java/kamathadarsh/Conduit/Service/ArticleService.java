@@ -326,4 +326,128 @@ public class ArticleService {
                     .build();
         }
     }
+
+    public CustomResponse updateArticle(String currUserUsername,
+                                        String articleSlug,
+                                        UpdateArticleRequest updateArticleRequest)
+    {
+
+        try{
+
+            Optional<Article> articleExists = articleRepository.findArticleBySlug(articleSlug);
+
+            if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " not found");
+
+            Article article = articleExists.get();
+
+            if(!article.getAuthor().getUsername().equals(currUserUsername)){
+                throw new ArticleNotFoundException("only author of article can edit it.");
+            }
+
+            if(updateArticleRequest.getTitle() != null && !updateArticleRequest.getTitle().isBlank()){
+
+                String newSlug = slugify(updateArticleRequest.getTitle());
+
+                article.setTitle(updateArticleRequest.getTitle());
+                article.setSlug(newSlug);
+
+
+            }
+
+            if(updateArticleRequest.getBody() != null && !updateArticleRequest.getBody().isBlank()){
+
+                article.setBody(updateArticleRequest.getBody());
+            }
+
+            if(updateArticleRequest.getDescription() != null && !updateArticleRequest.getDescription().isBlank()){
+
+                article.setDescription(updateArticleRequest.getDescription());
+            }
+            articleRepository.save(article);
+
+            return createArticleResponse(currUserUsername, article);
+
+        }
+        catch(ArticleNotFoundException e){
+            return FailureResponse.builder().status(HttpStatus.NOT_FOUND).message(e.getMessage()).build();
+        }
+
+
+    }
+
+    public CustomResponse deleteArticle(String currUserUsername, String articleSlug){
+
+        try{
+
+            Optional<Article> articleExists = articleRepository.findArticleBySlug(articleSlug);
+
+            if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " not found.");
+
+            Article article = articleExists.get();
+
+            if(!article.getAuthor().getUsername().equals(currUserUsername)) throw new ArticleNotFoundException("only author can delete article.");
+
+
+            //-----------------------------------------------------------------------------------------------------
+            // deleting article from favourite article list of users.
+
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+            CriteriaQuery<User> criteriaQuery = cb.createQuery(User.class);
+
+            Root<User> articleRoot = criteriaQuery.from(User.class);
+
+            Join<User, Article> favouriteArticleUserJoin = articleRoot.join("favouriteArticleList", JoinType.INNER);
+
+            Predicate favouriteArticleUserPredicate = cb.equal(favouriteArticleUserJoin.get("slug"), articleSlug);
+
+            criteriaQuery.where(favouriteArticleUserPredicate);
+
+            TypedQuery<User> userTypedQuery = entityManager.createQuery(criteriaQuery);
+
+            List<User> usersWhoHaveFavouritedArticle = userTypedQuery.getResultList();
+
+            for(User user : usersWhoHaveFavouritedArticle){
+
+                user.getFavouriteArticleList().remove(article);
+                userRepository.save(user);
+            }
+
+            //------------------------------------------------------------------------------------------------------
+            // deleting article from list of articles of a tag.
+
+            Set<Tag> tagList = article.getTags();
+
+            for(Tag tag : tagList){
+
+                Set<Article> articlesWithTag = tag.getArticles();
+                articlesWithTag.remove(article);
+
+                // deleting tags that are no longer used, because no other articles other than the current one use it.
+                if(articlesWithTag.isEmpty()) tagService.deleteTag(tag);
+
+            }
+
+            //------------------------------------------------------------------------------------------------------
+            // delete all comments under an article.
+
+            List<Comment> commentList = commentRepository.findAllCommentsUnderAnArticle(articleSlug);
+
+            for(Comment comment : commentList){
+
+                commentRepository.delete(comment);
+            }
+
+            //-------------------------------------------------------------------------------------------------------
+
+
+            return SuccessResponse.builder().successMessage("article has been deleted successfully.").build();
+
+
+        }
+        catch(ArticleNotFoundException e){
+
+            return FailureResponse.builder().message(e.getMessage()).status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 }
