@@ -148,11 +148,11 @@ public class ArticleService {
 
                 Optional<Tag> tagExists = tagService.findTagByTagName(tagName);
 
-            if(tagExists.isPresent() == false){
+                if(tagExists.isPresent() == false){
 
-                Tag newTag = tagService.createTag(tagName);
+                    Tag newTag = tagService.createTag(tagName);
 
-                finalTagList.add(newTag);
+                    finalTagList.add(newTag);
 
                 }
                 else finalTagList.add(tagExists.get());
@@ -178,8 +178,7 @@ public class ArticleService {
                 .build();
 
 
-
-
+        articleRepository.save(newArticle);
         //---------------------------------------------------------------------------------------------------------
         // adding the new article to the list of articles with a particular tag, for each tag in newTagList.
         // newTagList is the list that was sent in the postArticleRequest
@@ -188,7 +187,7 @@ public class ArticleService {
 
             for(String tagName : newTagList){
 
-           tagService.addArticleToList(tagService.findTagByTagName(tagName).get(), newArticle);
+                tagService.addArticleToList(tagService.findTagByTagName(tagName).get(), newArticle);
 
 
             }
@@ -196,11 +195,13 @@ public class ArticleService {
         }
 
         //---------------------------------------------------------------------------------------------------------
-        articleRepository.save(newArticle);
+
         return createArticleResponse(currUserUsername, newArticle);
 
 
     }
+
+
 
 
     public CustomResponse getArticle(String currUserUsername, String articleSlug){
