@@ -1,4 +1,9 @@
 package kamathadarsh.Conduit.Response;
 
-public abstract class CustomResponse {
+import lombok.Data;
+
+import java.io.Serializable;
+
+@Data
+public abstract class CustomResponse implements Serializable {
 }

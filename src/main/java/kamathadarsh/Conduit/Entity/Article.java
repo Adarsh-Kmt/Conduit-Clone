@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
@@ -15,10 +16,13 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @Data
+
 @Table(uniqueConstraints = @UniqueConstraint(name = "slug", columnNames = "slug"))
-public class Article {
+public class Article implements Serializable{
 
     @Id
+    @org.springframework.data.annotation.Id
+    @org.springframework.data.annotation.AccessType(org.springframework.data.annotation.AccessType.Type.PROPERTY)
     private String slug;
 
     private String title;
@@ -31,7 +35,7 @@ public class Article {
 
     private Instant updatedAt;
 
-    @ManyToMany(mappedBy = "favouriteArticleList")
+    @ManyToMany(mappedBy = "favouriteArticleList", fetch = FetchType.LAZY)
     private Set<User> favouriteByList;
 
     private Integer favouriteCount;
