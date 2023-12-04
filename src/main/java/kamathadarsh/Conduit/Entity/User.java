@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -32,7 +31,9 @@ public class User {
 
     private Set<String> followingUserUsernameList;
 
-    @ManyToMany
+    private Set<String> followerUserUsernameList;
+
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_favourite_article_table",
             joinColumns = @JoinColumn(name = "username", referencedColumnName = "username"),

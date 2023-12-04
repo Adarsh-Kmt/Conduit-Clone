@@ -35,8 +35,10 @@ public class UserService {
 
 
             Set<String> FollowingList = userThatFollows.get().getFollowingUserUsernameList();
+            Set<String> FollowerList = userToBeFollowed.get().getFollowerUserUsernameList();
 
             FollowingList.add(toBeFollowedUsername);
+            FollowerList.add(followerUsername);
 
             userRepository.save(userThatFollows.get());
 
@@ -79,6 +81,7 @@ public class UserService {
             User userToBeFollowed = userToBeFollowedExists.get();
 
             Set<String> followingList = followerUser.getFollowingUserUsernameList();
+            Set<String> followerList = userToBeFollowed.getFollowerUserUsernameList();
 
             if(followingList.contains(toBeFollowedUsername) == false){
 
@@ -88,7 +91,7 @@ public class UserService {
                         .build();
             }
             followingList.remove(toBeFollowedUsername);
-
+            followerList.remove(followerUsername);
             userRepository.save(followerUser);
 
             return new ProfileResponse(
