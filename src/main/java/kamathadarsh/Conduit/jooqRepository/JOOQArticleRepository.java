@@ -7,7 +7,7 @@ import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Tag;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.records.ArticleRecord;
 import lombok.AllArgsConstructor;
 
-import org.jooq.Condition;
+
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
@@ -49,7 +49,7 @@ public class JOOQArticleRepository {
 
     }
 
-    public void save(Article article){
+    public void createArticle(Article article){
 
         dslContext.insertInto(ARTICLE)
                 .set(ARTICLE.SLUG, article.getSlug())
@@ -90,27 +90,52 @@ public class JOOQArticleRepository {
 
     public List<Article> globalFeed(String currUserUsername, GetArticleRequest getArticleRequest){
 
-        Condition baseCondition = DSL.trueCondition();
+//        SelectQuery query = dslContext.selectFrom(ARTICLE).getQuery();
+//
+//        if(getArticleRequest.getIsFavourited() != null && getArticleRequest.getIsFavourited()){
+//
+//            query.addJoin(USER_FAVOURITE_ARTICLE_TABLE, USER_FAVOURITE_ARTICLE_TABLE.USERNAME.eq(ARTICLE.SLUG));
+//            query.addConditions(USER_FAVOURITE_ARTICLE_TABLE.USERNAME.eq(currUserUsername));
+//        }
+//
+//        return query.fetchInto(Article.class);
 
-        if(getArticleRequest.getIsFavourited() != null && getArticleRequest.getIsFavourited()){
+//        return dslContext.select().from(ARTICLE)
+//                .where(
+//                        (getArticleRequest.getIsFavourited() != null && getArticleRequest.getIsFavourited())?
+//                                USER_FAVOURITE_ARTICLE_TABLE.ARTICLE_SLUG.in(
+//                                        dslContext.select(USER_FAVOURITE_ARTICLE_TABLE.ARTICLE_SLUG)
+//                                                .from(USER_FAVOURITE_ARTICLE_TABLE)
+//                                                .where(USER_FAVOURITE_ARTICLE_TABLE.USERNAME.eq(currUserUsername))
+//                                ):DSL.trueCondition()
+//                ).fetchInto(Article.class);
 
-            baseCondition = baseCondition.and(USER_FAVOURITE_ARTICLE_TABLE.USERNAME.eq(currUserUsername));
-        }
+        boolean isFavourited = (getArticleRequest.getIsFavourited() != null && getArticleRequest.getIsFavourited());
+        boolean tagFilter = (getArticleRequest.getTags() != null && !getArticleRequest.getTags().isEmpty());
+        boolean authorFilter = (getArticleRequest.getAuthorUsername() != null && !getArticleRequest.getAuthorUsername().isBlank());
 
-        if(getArticleRequest.getAuthorUsername() != null && !getArticleRequest.getAuthorUsername().isBlank()){
-
-            baseCondition = baseCondition.and(ARTICLE.AUTHOR_USERNAME.eq(getArticleRequest.getAuthorUsername()));
-        }
-
-        if(getArticleRequest.getTags() != null && !getArticleRequest.getTags().isEmpty()){
-
-            baseCondition = baseCondition.and(ARTICLE_TAG_TABLE.TAG_NAME.in(getArticleRequest.getTags()));
-        }
-
-        return dslContext.select()
-                .from(ARTICLE)
-                .where(baseCondition)
+        String authorUsername = getArticleRequest.getAuthorUsername();
+        List<String> listOfTags = getArticleRequest.getTags();
+        return dslContext.select(ARTICLE.SLUG,
+                        ARTICLE.BODY,
+                        ARTICLE.AUTHOR_USERNAME,
+                        ARTICLE.UPDATED_AT,
+                ARTICLE.CREATED_AT,
+                ARTICLE.DESCRIPTION,
+                ARTICLE.FAVOURITE_COUNT,
+                ARTICLE.TITLE
+                ).distinctOn(ARTICLE.SLUG).from(ARTICLE)
+                .join(USER_FAVOURITE_ARTICLE_TABLE)
+                .on(isFavourited ? USER_FAVOURITE_ARTICLE_TABLE.ARTICLE_SLUG.eq(ARTICLE.SLUG):DSL.noCondition())
+                .join(ARTICLE_TAG_TABLE)
+                .on(tagFilter ? ARTICLE_TAG_TABLE.ARTICLE_SLUG.eq(ARTICLE.SLUG):DSL.noCondition())
+                .where(tagFilter ? ARTICLE_TAG_TABLE.TAG_NAME.in(listOfTags):DSL.trueCondition())
+                .and(isFavourited?USER_FAVOURITE_ARTICLE_TABLE.USERNAME.eq(currUserUsername):DSL.trueCondition())
+                .and(authorFilter?ARTICLE.AUTHOR_USERNAME.eq(authorUsername):DSL.trueCondition())
                 .fetchInto(Article.class);
+
+
+
 
 
     }
@@ -120,14 +145,6 @@ public class JOOQArticleRepository {
 
 
         ArticleRecord updatedRecord = new ArticleRecord();
-
-        String newArticleSlug = articleSlug;
-        if(updateArticleRequest.getTitle() != null && !updateArticleRequest.getTitle().isBlank()){
-
-            newArticleSlug = slugify(updateArticleRequest.getTitle());
-            updatedRecord.set(ARTICLE.TITLE, updateArticleRequest.getTitle());
-            updatedRecord.set(ARTICLE.SLUG, newArticleSlug);
-        }
 
         if(updateArticleRequest.getBody() != null && !updateArticleRequest.getBody().isBlank()){
 
@@ -147,27 +164,8 @@ public class JOOQArticleRepository {
                 .where(ARTICLE.SLUG.eq(articleSlug))
                 .execute();
 
-        // if title changes, slug changes, then slug used to refer to article in other tables must also be updated.
-        if(updateArticleRequest.getTitle() != null && !updateArticleRequest.getTitle().isBlank()){
 
-            // update comment table
-            dslContext.update(COMMENT)
-                    .set(COMMENT.ARTICLE_SLUG, newArticleSlug)
-                    .where(COMMENT.ARTICLE_SLUG.eq(articleSlug))
-                    .execute();
 
-            //update favourite article user table.
-            dslContext.update(USER_FAVOURITE_ARTICLE_TABLE)
-                    .set(USER_FAVOURITE_ARTICLE_TABLE.ARTICLE_SLUG, newArticleSlug)
-                    .where(USER_FAVOURITE_ARTICLE_TABLE.ARTICLE_SLUG.eq(articleSlug))
-                    .execute();
-
-            //updating tag article table
-            dslContext.update(ARTICLE_TAG_TABLE)
-                    .set(ARTICLE_TAG_TABLE.ARTICLE_SLUG, newArticleSlug)
-                    .where(ARTICLE_TAG_TABLE.ARTICLE_SLUG.eq(articleSlug))
-                    .execute();
-        }
 
     }
 
