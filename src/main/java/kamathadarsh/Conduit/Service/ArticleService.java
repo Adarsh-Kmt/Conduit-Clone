@@ -71,59 +71,46 @@ public class ArticleService {
 
 
 
-    @Transactional
+
     public ArticleResponse createArticle(String currUserUsername, PostArticleRequest postArticleRequest)
     {
 
 
-        List<String> newTagList = postArticleRequest.getTagList();
 
-
-        //---------------------------------------------------------------------------------------------------------
-        // checking if each tag in the newTagList that comes with the postArticleRequest already exists.
-        // if not, a new tag is created.
-        // all tags are added to the finalTagList, which will eventually be used as value for tags field of the
-        // article.
-        if(postArticleRequest.getTagList() != null && !postArticleRequest.getTagList().isEmpty()){
-            for(String tagName : newTagList){
-
-                Optional<Tag> tagExists = tagService.findTagByTagName(tagName);
-
-                if(tagExists.isPresent() == false){
-
-                    tagService.createTag(tagName);
-                }
-
-            }
-        }
-        //---------------------------------------------------------------------------------------------------------
+        String finalSlug = slugify(postArticleRequest.getTitle());
         // creating the article record.
-
-        System.out.println("slug of current article is : " + slugify(postArticleRequest.getTitle()));
-
-
-        Article newArticle = new Article(slugify(postArticleRequest.getTitle()),
+        Article newArticle = new Article(finalSlug,
                 postArticleRequest.getBody(),
                 LocalDateTime.now(),
                 postArticleRequest.getDescription(),
-                0, postArticleRequest.getTitle(),
+                0,
+                postArticleRequest.getTitle(),
                 LocalDateTime.now(),
                 currUserUsername);
 
 
-        jooqArticleRepository.save(newArticle);
+        jooqArticleRepository.createArticle(newArticle);
+
+        List<String> newTagList = postArticleRequest.getTagList();
 
         //---------------------------------------------------------------------------------------------------------
-        // adding the new article to the list of articles with a particular tag, for each tag in newTagList.
-        // newTagList is the list that was sent in the postArticleRequest
+        // checking if each tag in the newTagList that comes with the postArticleRequest already exists.
+        // if not, a new tag is created.
 
-        if(newTagList != null && !newTagList.isEmpty()){
+        if(postArticleRequest.getTagList() != null && !postArticleRequest.getTagList().isEmpty()){
+            for(String tagName : newTagList){
 
-            for(String tagName : newTagList) tagService.addArticleToList(tagName, newArticle.getSlug());
+                boolean tagExists = tagService.findTagByTagName(tagName);
 
+                if(!tagExists){
+                    tagService.createTag(tagName);
+                }
+                // adding the new article to the list of articles with a particular tag, for each tag in newTagList.
+                tagService.addArticleToList(tagName, finalSlug);
+
+            }
         }
 
-        //---------------------------------------------------------------------------------------------------------
 
         return createArticleResponse(currUserUsername, newArticle);
 
