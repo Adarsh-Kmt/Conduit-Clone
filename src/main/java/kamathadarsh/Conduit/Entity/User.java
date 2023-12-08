@@ -29,10 +29,6 @@ public class User {
 
     private String image;
 
-    private Set<String> followingUserUsernameList;
-
-    private Set<String> followerUserUsernameList;
-
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_favourite_article_table",
