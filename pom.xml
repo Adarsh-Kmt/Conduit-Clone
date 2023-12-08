@@ -35,6 +35,8 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
+			<version>1.18.30</version>
+			<scope>provided</scope>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -66,14 +68,14 @@
 		<dependency>
 			<groupId>org.jooq</groupId>
 			<artifactId>jooq</artifactId>
-			<version>3.15.1</version> <!-- Use the latest version available -->
+			<version>3.18.0</version> <!-- Use the latest version available -->
 		</dependency>
 
 		<!-- JOOQ Code Generator -->
 		<dependency>
 			<groupId>org.jooq</groupId>
 			<artifactId>jooq-codegen</artifactId>
-			<version>3.15.1</version> <!-- Use the same version as the JOOQ library -->
+			<version>3.18.0</version> <!-- Use the same version as the JOOQ library -->
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate.validator</groupId>
@@ -120,17 +122,19 @@
 					<generator>
 						<name>org.jooq.codegen.JavaGenerator</name>
 						<database>
+
 							<includes>.*</includes>
 							<excludes></excludes>
 							<inputSchema>conduitdb</inputSchema>
 						</database>
 						<target>
-							<packageName>jooqGenerated</packageName>
+							<packageName>kamathadarsh.Conduit.jooq.jooqGenerated</packageName>
 							<directory>target/generated-sources/jooq</directory>
 						</target>
 
 						<generate>
 							<pojos>true</pojos>
+
 						</generate>
 					</generator>
 
