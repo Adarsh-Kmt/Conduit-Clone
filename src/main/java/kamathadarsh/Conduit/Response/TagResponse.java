@@ -1,6 +1,6 @@
 package kamathadarsh.Conduit.Response;
 
-import kamathadarsh.Conduit.Entity.Tag;
+import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
