@@ -149,19 +149,6 @@ public class UserService {
 
             String finalUsername = currUserUsername;
 
-            if(!userUpdateRequest.getUsername().isBlank() && userUpdateRequest.getUsername() != null){
-
-                // checking if username is already taken or not.
-                if(jooqUserRepository.findByUsername(userUpdateRequest.getUsername()).isPresent()){
-                    throw new UserAlreadyExistsException("user with username " + userUpdateRequest.getUsername() + " already exists, pick another username.");
-
-                }
-
-                // if new username is valid, after update is successful, we need to use the new username.
-                finalUsername = userUpdateRequest.getUsername();
-
-            }
-
             jooqUserRepository.updateUser(currUserUsername, userUpdateRequest);
 
 
@@ -177,7 +164,7 @@ public class UserService {
 
         }
 
-        catch(UserNotFoundException | UserAlreadyExistsException e){
+        catch(UserNotFoundException e){
 
             return FailureResponse.builder()
                     .message(e.getMessage())
