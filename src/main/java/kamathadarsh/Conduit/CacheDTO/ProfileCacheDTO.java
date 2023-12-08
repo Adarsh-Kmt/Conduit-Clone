@@ -1,10 +1,11 @@
 package kamathadarsh.Conduit.CacheDTO;
 
-import kamathadarsh.Conduit.Entity.User;
+import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 import kamathadarsh.Conduit.Response.ProfileResponse;
 
-import java.util.HashSet;
-import java.util.Set;
+
+import java.util.List;
+
 
 public class ProfileCacheDTO {
 
@@ -14,14 +15,14 @@ public class ProfileCacheDTO {
 
     private String image;
 
-    private Set<String> followerUserUsernameList;
+    private List<String> followerUserUsernameList;
 
-    public ProfileCacheDTO(User user){
+    public ProfileCacheDTO(UserTable user, List<String> followerUsernameList){
 
         this.username = user.getUsername();
         this.bio = user.getBio();
         this.image = user.getImage();
-        this.followerUserUsernameList = user.getFollowerUserUsernameList();
+        this.followerUserUsernameList = followerUsernameList;
     }
 
     public ProfileResponse convertToProfileResponse(String currUserUsername){
