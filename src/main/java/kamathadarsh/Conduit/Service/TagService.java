@@ -8,10 +8,8 @@ import kamathadarsh.Conduit.jooqRepository.JOOQTagRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+
 
 @Service
 @AllArgsConstructor
@@ -28,7 +26,7 @@ public class TagService {
         return new TagResponse(tagList);
     }
 
-    public Optional<Tag> findTagByTagName(String tagName){
+    public boolean findTagByTagName(String tagName){
 
         return jooqTagRepository.findTagByTagName(tagName);
     }

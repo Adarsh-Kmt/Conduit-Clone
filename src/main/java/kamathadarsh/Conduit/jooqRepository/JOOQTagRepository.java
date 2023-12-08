@@ -29,12 +29,11 @@ public class JOOQTagRepository{
 
     }
 
-    public Optional<Tag> findTagByTagName(String tagName){
+    public boolean findTagByTagName(String tagName){
 
-        return Optional.ofNullable(dslContext.select()
+        return dslContext.fetchExists(dslContext.select()
                 .from(TAG)
-                .where(TAG.TAG_NAME.eq(tagName))
-                .fetchOneInto(Tag.class));
+                .where(TAG.TAG_NAME.eq(tagName)));
 
 
     }
@@ -59,7 +58,7 @@ public class JOOQTagRepository{
     }
 
 
-    public void addArticleToList(String articleSlug, String tagName){
+    public void addArticleToList(String tagName, String articleSlug){
 
         dslContext.insertInto(ARTICLE_TAG_TABLE)
                 .set(ARTICLE_TAG_TABLE.ARTICLE_SLUG, articleSlug)
