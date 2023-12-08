@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Builder
 @Data
@@ -17,9 +18,9 @@ public class ArticleResponse extends CustomResponse{
 
     private String body;
 
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
     private Integer favouriteCount;
 
