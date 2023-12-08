@@ -4,23 +4,27 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import jakarta.transaction.Transactional;
-import kamathadarsh.Conduit.Entity.Article;
+import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Article;
 import kamathadarsh.Conduit.Entity.Comment;
-import kamathadarsh.Conduit.Entity.Tag;
-import kamathadarsh.Conduit.Entity.User;
+import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Tag;
+import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 import kamathadarsh.Conduit.Exception.ArticleNotFoundException;
-import kamathadarsh.Conduit.Repository.ArticleRepository;
-import kamathadarsh.Conduit.Repository.CommentRepository;
-import kamathadarsh.Conduit.Repository.UserRepository;
+
+
 import kamathadarsh.Conduit.Request.GetArticleRequest;
 import kamathadarsh.Conduit.Request.PostArticleRequest;
 import kamathadarsh.Conduit.Request.UpdateArticleRequest;
 import kamathadarsh.Conduit.Response.*;
+import kamathadarsh.Conduit.jooqRepository.JOOQArticleRepository;
+import kamathadarsh.Conduit.jooqRepository.JOOQCommentRepository;
+import kamathadarsh.Conduit.jooqRepository.JOOQTagRepository;
+import kamathadarsh.Conduit.jooqRepository.JOOQUserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -31,17 +35,18 @@ import java.util.*;
 public class ArticleService {
 
 
-    final ArticleRepository articleRepository;
+    final JOOQArticleRepository jooqArticleRepository;
 
+    final JOOQTagRepository jooqTagRepository;
     final UserService userService;
 
     final CacheService cacheService;
 
     final EntityManager entityManager;
 
-    final UserRepository userRepository;
+    final JOOQUserRepository jooqUserRepository;
 
-    final CommentRepository commentRepository;
+    final JOOQCommentRepository jooqCommentRepository;
     final TagService tagService;
 
 
@@ -50,69 +55,7 @@ public class ArticleService {
                                                 GetArticleRequest getArticleRequest)
     {
 
-        //------------------------------------------------------------------------------------------------------
-        // using Criteria to get Articles according to articleRequest
-
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-
-        CriteriaQuery<Article> criteriaQuery = cb.createQuery(Article.class);
-
-        List<Predicate> finalPredicateList = new ArrayList<>();
-
-        Root<Article> articleRoot = criteriaQuery.from(Article.class);
-
-        if(getArticleRequest.getTags() != null && !getArticleRequest.getTags().isEmpty()){
-
-            Join<Article, Tag> articleTagJoin = articleRoot.join("tags", JoinType.INNER);
-            System.out.println("tag predicate applied");
-            Predicate tagsPredicate = articleTagJoin.get("tagName").in(getArticleRequest.getTags());
-
-            finalPredicateList.add(tagsPredicate);
-
-
-        }
-
-
-
-
-        if(getArticleRequest.getIsFavourited() != null && getArticleRequest.getIsFavourited()){
-
-
-
-            System.out.println("favourited predicate applied");
-
-            Join<Article, User> favouriteArticleUserJoin = articleRoot.join("favouriteByList", JoinType.INNER);
-            Predicate favouriteOrNotPredicate = cb.equal(favouriteArticleUserJoin.get("username"), currUserUsername);
-
-            finalPredicateList.add(favouriteOrNotPredicate);
-
-        }
-        if(getArticleRequest.getAuthorUsername() != null && !getArticleRequest.getAuthorUsername().isBlank()){
-
-            System.out.println("author predicated applied");
-            Join<Article, User> articleAuthorUserJoin = articleRoot.join("author", JoinType.INNER);
-            Predicate authorPredicate = cb.equal(articleAuthorUserJoin.get("username"), getArticleRequest.getAuthorUsername());
-
-            finalPredicateList.add(authorPredicate);
-
-
-        }
-        Predicate finalPredicate = null;
-
-        for(int i = 0; i < finalPredicateList.size(); i++){
-
-            if(i == 0) finalPredicate = finalPredicateList.get(0);
-
-            else{
-                finalPredicate = cb.and(finalPredicate, finalPredicateList.get(i));
-            }
-        }
-
-        criteriaQuery.where(finalPredicate);
-
-        TypedQuery<Article> articleTypedQuery = entityManager.createQuery(criteriaQuery);
-
-        List<Article> finalArticleList = articleTypedQuery.getResultList();
+        List<Article> finalArticleList = jooqArticleRepository.globalFeed(currUserUsername, getArticleRequest);
 
         List<ArticleResponse> finalArticleResponseList = new ArrayList<>();
 
@@ -132,11 +75,9 @@ public class ArticleService {
     public ArticleResponse createArticle(String currUserUsername, PostArticleRequest postArticleRequest)
     {
 
-        User author = userRepository.findByUsername(currUserUsername).get();
 
         List<String> newTagList = postArticleRequest.getTagList();
 
-        Set<Tag> finalTagList = new HashSet<>();
 
         //---------------------------------------------------------------------------------------------------------
         // checking if each tag in the newTagList that comes with the postArticleRequest already exists.
@@ -148,14 +89,11 @@ public class ArticleService {
 
                 Optional<Tag> tagExists = tagService.findTagByTagName(tagName);
 
-            if(tagExists.isPresent() == false){
+                if(tagExists.isPresent() == false){
 
-                Tag newTag = tagService.createTag(tagName);
-
-                finalTagList.add(newTag);
-
+                    tagService.createTag(tagName);
                 }
-                else finalTagList.add(tagExists.get());
+
             }
         }
         //---------------------------------------------------------------------------------------------------------
@@ -164,21 +102,16 @@ public class ArticleService {
         System.out.println("slug of current article is : " + slugify(postArticleRequest.getTitle()));
 
 
-        Article newArticle = Article.builder()
-                .title(postArticleRequest.getTitle())
-                .slug(slugify(postArticleRequest.getTitle()))
-                .body(postArticleRequest.getBody())
-                .author(author)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .description(postArticleRequest.getDescription())
-                .favouriteByList(new HashSet<>())
-                .favouriteCount(0)
-                .tags(finalTagList)
-                .build();
+        Article newArticle = new Article(slugify(postArticleRequest.getTitle()),
+                postArticleRequest.getBody(),
+                LocalDateTime.now(),
+                postArticleRequest.getDescription(),
+                0, postArticleRequest.getTitle(),
+                LocalDateTime.now(),
+                currUserUsername);
 
 
-
+        jooqArticleRepository.save(newArticle);
 
         //---------------------------------------------------------------------------------------------------------
         // adding the new article to the list of articles with a particular tag, for each tag in newTagList.
@@ -186,17 +119,12 @@ public class ArticleService {
 
         if(newTagList != null && !newTagList.isEmpty()){
 
-            for(String tagName : newTagList){
-
-           tagService.addArticleToList(tagService.findTagByTagName(tagName).get(), newArticle);
-
-
-            }
+            for(String tagName : newTagList) tagService.addArticleToList(tagName, newArticle.getSlug());
 
         }
 
         //---------------------------------------------------------------------------------------------------------
-        articleRepository.save(newArticle);
+
         return createArticleResponse(currUserUsername, newArticle);
 
 
@@ -211,7 +139,7 @@ public class ArticleService {
 
             if(response instanceof ArticleResponse) return response;
 
-            Optional<Article> articleExists = articleRepository.findArticleBySlug(articleSlug);
+            Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
 
             if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found.");
 
@@ -230,8 +158,8 @@ public class ArticleService {
 
     public ArticleResponse createArticleResponse(String currUserUsername, Article article){
 
-        User author = article.getAuthor();
-        ProfileResponse authorProfile = (ProfileResponse) userService.getProfile(author.getUsername(), currUserUsername);
+        String authorUsername = article.getAuthorUsername();
+        ProfileResponse authorProfile = (ProfileResponse) userService.getProfile(authorUsername, currUserUsername);
         return ArticleResponse.builder()
                 .updatedAt(article.getUpdatedAt())
                 .createdAt(article.getCreatedAt())
@@ -249,19 +177,13 @@ public class ArticleService {
     public CustomResponse favouriteArticle(String currUserUsername, String articleSlug){
 
         try{
-            Optional<Article> articleExists = articleRepository.findArticleBySlug(articleSlug);
+            Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
 
             if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found.");
 
             Article article = articleExists.get();
 
-            User currUser = userRepository.findByUsername(currUserUsername).get();
-
-            currUser.getFavouriteArticleList().add(article);
-            article.getFavouriteByList().add(currUser);
-
-            articleRepository.save(article);
-            userRepository.save(currUser);
+            jooqArticleRepository.favouriteArticle(articleSlug, currUserUsername);
 
             return createArticleResponse(currUserUsername, article);
 
@@ -289,15 +211,13 @@ public class ArticleService {
 
         try{
 
-            Optional<Article> articleExists = articleRepository.findArticleBySlug(articleSlug);
+            Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
 
             if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found.");
 
             Article article = articleExists.get();
 
-            User currUser = userRepository.findByUsername(currUserUsername).get();
-
-            if(!currUser.getFavouriteArticleList().contains(article) && !article.getFavouriteByList().contains(currUser)){
+            if(!jooqArticleRepository.articleIsFavouritedByUser(currUserUsername, articleSlug)){
 
                 return FailureResponse.builder()
                         .message("user has not favourited the article")
@@ -305,11 +225,7 @@ public class ArticleService {
                         .build();
             }
 
-            currUser.getFavouriteArticleList().remove(article);
-            article.getFavouriteByList().remove(currUser);
-
-            articleRepository.save(article);
-            userRepository.save(currUser);
+            jooqArticleRepository.unfavouriteArticle(articleSlug, currUserUsername);
 
             return createArticleResponse(currUserUsername, article);
 
@@ -331,38 +247,14 @@ public class ArticleService {
 
         try{
 
-            Optional<Article> articleExists = articleRepository.findArticleBySlug(articleSlug);
+            Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
 
             if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " not found");
 
-            Article article = articleExists.get();
+            jooqArticleRepository.updateArticle(articleSlug, updateArticleRequest);
 
-            if(!article.getAuthor().getUsername().equals(currUserUsername)){
-                throw new ArticleNotFoundException("only author of article can edit it.");
-            }
-
-            if(updateArticleRequest.getTitle() != null && !updateArticleRequest.getTitle().isBlank()){
-
-                String newSlug = slugify(updateArticleRequest.getTitle());
-
-                article.setTitle(updateArticleRequest.getTitle());
-                article.setSlug(newSlug);
-
-
-            }
-
-            if(updateArticleRequest.getBody() != null && !updateArticleRequest.getBody().isBlank()){
-
-                article.setBody(updateArticleRequest.getBody());
-            }
-
-            if(updateArticleRequest.getDescription() != null && !updateArticleRequest.getDescription().isBlank()){
-
-                article.setDescription(updateArticleRequest.getDescription());
-            }
-            articleRepository.save(article);
-
-            return createArticleResponse(currUserUsername, article);
+            Optional<Article> updatedArticleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
+            return createArticleResponse(currUserUsername, updatedArticleExists.get());
 
         }
         catch(ArticleNotFoundException e){
@@ -376,67 +268,15 @@ public class ArticleService {
 
         try{
 
-            Optional<Article> articleExists = articleRepository.findArticleBySlug(articleSlug);
+            Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
 
             if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " not found.");
 
             Article article = articleExists.get();
 
-            if(!article.getAuthor().getUsername().equals(currUserUsername)) throw new ArticleNotFoundException("only author can delete article.");
+            if(jooqArticleRepository.getAuthorUsernameOfArticle(articleSlug).equals(currUserUsername)) throw new ArticleNotFoundException("only author can delete article.");
 
-
-            //-----------------------------------------------------------------------------------------------------
-            // deleting article from favourite article list of users.
-
-            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-
-            CriteriaQuery<User> criteriaQuery = cb.createQuery(User.class);
-
-            Root<User> articleRoot = criteriaQuery.from(User.class);
-
-            Join<User, Article> favouriteArticleUserJoin = articleRoot.join("favouriteArticleList", JoinType.INNER);
-
-            Predicate favouriteArticleUserPredicate = cb.equal(favouriteArticleUserJoin.get("slug"), articleSlug);
-
-            criteriaQuery.where(favouriteArticleUserPredicate);
-
-            TypedQuery<User> userTypedQuery = entityManager.createQuery(criteriaQuery);
-
-            List<User> usersWhoHaveFavouritedArticle = userTypedQuery.getResultList();
-
-            for(User user : usersWhoHaveFavouritedArticle){
-
-                user.getFavouriteArticleList().remove(article);
-                userRepository.save(user);
-            }
-
-            //------------------------------------------------------------------------------------------------------
-            // deleting article from list of articles of a tag.
-
-            Set<Tag> tagList = article.getTags();
-
-            for(Tag tag : tagList){
-
-                Set<Article> articlesWithTag = tag.getArticles();
-                articlesWithTag.remove(article);
-
-                // deleting tags that are no longer used, because no other articles other than the current one use it.
-                if(articlesWithTag.isEmpty()) tagService.deleteTag(tag);
-
-            }
-
-            //------------------------------------------------------------------------------------------------------
-            // delete all comments under an article.
-
-            List<Comment> commentList = commentRepository.findAllCommentsUnderAnArticle(articleSlug);
-
-            for(Comment comment : commentList){
-
-                commentRepository.delete(comment);
-            }
-
-            //-------------------------------------------------------------------------------------------------------
-
+            jooqArticleRepository.deleteArticle(articleSlug);
 
             return SuccessResponse.builder().successMessage("article has been deleted successfully.").build();
 
