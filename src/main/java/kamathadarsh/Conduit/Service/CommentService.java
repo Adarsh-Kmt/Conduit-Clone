@@ -40,6 +40,7 @@ public class CommentService {
         String authorUsername = comment.getUserUsername();
         ProfileResponse authorProfile = (ProfileResponse) userService.getProfile(authorUsername, currUserUsername);
         return CommentResponse.builder()
+                .id(comment.getId())
                 .body(comment.getBody())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())

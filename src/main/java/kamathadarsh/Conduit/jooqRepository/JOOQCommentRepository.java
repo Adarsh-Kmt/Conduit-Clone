@@ -30,6 +30,7 @@ public class JOOQCommentRepository {
     public void createComment(Comment newComment){
 
         dslContext.insertInto(COMMENT)
+
                 .set(COMMENT.ARTICLE_SLUG, newComment.getArticleSlug())
                 .set(COMMENT.USER_USERNAME, newComment.getUserUsername())
                 .set(COMMENT.CREATED_AT, newComment.getCreatedAt())
