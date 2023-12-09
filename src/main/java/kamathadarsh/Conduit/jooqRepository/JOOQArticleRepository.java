@@ -26,10 +26,15 @@ public class JOOQArticleRepository {
 
     private final DSLContext dslContext;
 
-    public String slugify(String articleName){
+    public String slugify(String articleTitle){
 
-        String slug = articleName.trim().toLowerCase().replace(" ", "-");
+        String slug = articleTitle.trim().toLowerCase().replace(" ", "-");
         return slug + "-" + UUID.randomUUID();
+    }
+
+    public boolean checkIfArticleExistsByArticleSlug(String articleSlug){
+
+        return dslContext.fetchExists(dslContext.selectFrom(ARTICLE).where(ARTICLE.SLUG.eq(articleSlug)));
     }
     public Optional<Article> findArticleBySlug(String articleSlug){
 
