@@ -57,5 +57,33 @@ public class CommentController {
     }
 
 
+    @PostMapping("/api/user/{username}/article/{slug}/comments/{id}/reply")
+    public ResponseEntity<CustomResponse> replyToComment(@PathVariable("username") String currUserUsername,
+                                                         @PathVariable("slug") String articleSlug,
+                                                         @PathVariable("id") Long parentCommentId,
+                                                         @RequestBody CommentRequest commentRequest)
+    {
+
+        CustomResponse response = commentService.replyToComment(currUserUsername, articleSlug, parentCommentId, commentRequest);
+
+        HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
+
+        return ResponseEntity.status(statusOfRequest).body(response);
+
+    }
+
+    @GetMapping("/api/user/{username}/article/{slug}/comments/{id}/replies")
+    public ResponseEntity<CustomResponse> getRepliesToComment(@PathVariable("username") String currUserUsername,
+                                                              @PathVariable("slug") String articleSlug,
+                                                              @PathVariable("id") Long parentCommentId){
+
+        CustomResponse response = commentService.getRepliesToComment(currUserUsername,articleSlug, parentCommentId);
+
+        HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
+
+        return ResponseEntity.status(statusOfRequest).body(response);
+    }
+
+
 
 }

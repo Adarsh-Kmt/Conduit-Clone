@@ -96,8 +96,11 @@ public class CommentService {
             comment.setUpdatedAt(LocalDateTime.now());
             comment.setUserUsername(currUserUsername);
 
-            jooqCommentRepository.createComment(comment);
+            // create comment returns the auto-generated comment id of the comment from the comment table,
+            // to be included in comment response object.
+            Long commentId = jooqCommentRepository.createComment(comment);
 
+            comment.setId(commentId);
             CommentResponse commentResponse = commentToCommentResponse(currUserUsername, comment);
 
             return new SingleCommentResponse(commentResponse);
@@ -118,7 +121,7 @@ public class CommentService {
         try{
 
 
-            if(!jooqCommentRepository.checkIfCommentUnderAnArticleById(articleSlug, commentId))
+            if(!jooqCommentRepository.checkIfCommentExistsById(commentId))
                 throw new CommentNotFoundException("comment with id " + commentId + "under article with slug: " + articleSlug + " was not found.");
 
             jooqCommentRepository.deleteCommentUnderAnArticleById(articleSlug, commentId);
@@ -134,6 +137,68 @@ public class CommentService {
                     .status(HttpStatus.NOT_FOUND)
                     .build();
         }
+
+    }
+
+
+    public CustomResponse replyToComment(String currUserUsername, String articleSlug, Long parentCommentId, CommentRequest commentRequest){
+
+        try{
+
+            boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
+            boolean commentExists = jooqCommentRepository.checkIfCommentExistsById(parentCommentId);
+            if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found");
+            if(!commentExists) throw new CommentNotFoundException("comment with id " + parentCommentId + " was not found");
+
+
+            jooqCommentRepository.replyToComment(currUserUsername, articleSlug, parentCommentId, commentRequest);
+
+            return SuccessResponse.builder()
+                    .successMessage("successfully replied to comment with id " + parentCommentId)
+                    .build();
+
+        }
+        catch(ArticleNotFoundException | CommentNotFoundException e){
+
+            return FailureResponse.builder()
+                    .status(HttpStatus.NOT_FOUND)
+                    .message(e.getMessage())
+                    .build();
+        }
+
+
+    }
+
+
+    public CustomResponse getRepliesToComment(String currUserUsername, String articleSlug, Long parentCommentId){
+
+        try{
+
+            boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
+            boolean commentExists = jooqCommentRepository.checkIfCommentExistsById(parentCommentId);
+            if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found");
+            if(!commentExists) throw new CommentNotFoundException("comment with id " + parentCommentId + " was not found");
+
+
+            List<Comment> replyList = jooqCommentRepository.getRepliesToComment(articleSlug, parentCommentId);
+
+            List<CommentResponse> replyResponseList = new ArrayList<>();
+
+            for(Comment reply : replyList){
+                replyResponseList.add(commentToCommentResponse(currUserUsername, reply));
+            }
+
+            return new MultipleCommentResponse(replyResponseList);
+
+        }
+        catch(ArticleNotFoundException | CommentNotFoundException e){
+
+            return FailureResponse.builder()
+                    .status(HttpStatus.NOT_FOUND)
+                    .message(e.getMessage())
+                    .build();
+        }
+
 
     }
 }
