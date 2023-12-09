@@ -24,7 +24,12 @@ public class JOOQUserRepository {
 
     public Optional<UserTable> findByUsername(String username){
 
-        return Optional.ofNullable(dslContext.select()
+        return Optional.ofNullable(dslContext.select(
+                USER_TABLE.USERNAME,
+                USER_TABLE.BIO,
+                USER_TABLE.IMAGE,
+                USER_TABLE.EMAIL_ID
+                )
                 .from(USER_TABLE)
                 .where(USER_TABLE.USERNAME.eq(username)).fetchOneInto(UserTable.class));
     }
