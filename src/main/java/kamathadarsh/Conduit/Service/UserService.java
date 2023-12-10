@@ -1,6 +1,5 @@
 package kamathadarsh.Conduit.Service;
 
-import kamathadarsh.Conduit.Exception.UserAlreadyExistsException;
 import kamathadarsh.Conduit.Exception.UserNotFoundException;
 
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;

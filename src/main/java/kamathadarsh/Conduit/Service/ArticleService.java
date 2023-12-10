@@ -1,13 +1,8 @@
 package kamathadarsh.Conduit.Service;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.*;
-import jakarta.transaction.Transactional;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Article;
-import kamathadarsh.Conduit.Entity.Comment;
-import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Tag;
-import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
+
 import kamathadarsh.Conduit.Exception.ArticleNotFoundException;
 
 

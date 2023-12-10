@@ -2,7 +2,6 @@ package kamathadarsh.Conduit.Service;
 
 
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Tag;
-import kamathadarsh.Conduit.Repository.TagRepository;
 import kamathadarsh.Conduit.Response.TagResponse;
 import kamathadarsh.Conduit.jooqRepository.JOOQTagRepository;
 import lombok.AllArgsConstructor;
@@ -14,8 +13,6 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class TagService {
-
-    private final TagRepository tagRepository;
 
     private final JOOQTagRepository jooqTagRepository;
 
