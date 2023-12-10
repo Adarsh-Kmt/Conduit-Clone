@@ -1,13 +1,17 @@
+# Conduit - A Medium.com Clone.
+#### This is an implementation of Conduit, a Medium.com clone. Medium is a famous blogging website.
 ---
 ### Database Schema Design (EER)
 ---
-![EER Diagram](art/Conduit%20EER.png) 
+<p align="center">
+  <img src="art/Conduit%20EER.png" alt="EER Diagram">
+</p>
 
 ---
 ### Features
 ---
 - Create, update and delete articles.
-- Faster access to the most popular articles.
+- Faster access to the most popular articles, using a caching system with Redis.
 - Get a global feed of articles, which can be filtered by author, tags, favourited or not.
 - Mark articles as favourite.
 - Comment on articles.
