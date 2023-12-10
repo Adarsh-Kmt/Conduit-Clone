@@ -1,47 +1,45 @@
 package kamathadarsh.Conduit.Service;
 
-import kamathadarsh.Conduit.Entity.User;
 import kamathadarsh.Conduit.Exception.UserNotFoundException;
-import kamathadarsh.Conduit.Repository.UserRepository;
+
+import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
+import kamathadarsh.Conduit.jooqRepository.JOOQUserRepository;
+
 import kamathadarsh.Conduit.Request.CreateUserRequest;
 import kamathadarsh.Conduit.Request.UserUpdateRequest;
+
 import kamathadarsh.Conduit.Response.CustomResponse;
 import kamathadarsh.Conduit.Response.FailureResponse;
 import kamathadarsh.Conduit.Response.ProfileResponse;
 import kamathadarsh.Conduit.Response.UserResponse;
+
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 @AllArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
+
+    private final JOOQUserRepository jooqUserRepository;
+
 
     public CustomResponse followUser(String followerUsername, String toBeFollowedUsername){
 
 
         try{
-            Optional<User> userToBeFollowed = userRepository.findByUsername(toBeFollowedUsername);
+            Optional<UserTable> userToBeFollowed = jooqUserRepository.findByUsername(toBeFollowedUsername);
 
-            Optional<User> userThatFollows = userRepository.findByUsername(followerUsername);
+            Optional<UserTable> userThatFollows = jooqUserRepository.findByUsername(followerUsername);
 
             if(!userToBeFollowed.isPresent()) throw new UserNotFoundException("user with Username " + toBeFollowedUsername + " not found.");
             if(!userThatFollows.isPresent()) throw new UserNotFoundException("user with Username " + followerUsername + " not found.");
 
 
-            Set<String> FollowingList = userThatFollows.get().getFollowingUserUsernameList();
-            Set<String> FollowerList = userToBeFollowed.get().getFollowerUserUsernameList();
-
-            FollowingList.add(toBeFollowedUsername);
-            FollowerList.add(followerUsername);
-
-            userRepository.save(userThatFollows.get());
+            jooqUserRepository.followUser(followerUsername, toBeFollowedUsername);
 
             return new ProfileResponse(
                     toBeFollowedUsername,
@@ -66,36 +64,32 @@ public class UserService {
 
     }
 
-    public CustomResponse unfollowUser(String followerUsername, String toBeFollowedUsername) {
+    public CustomResponse unfollowUser(String followerUsername, String toBeUnfollowedUsername) {
 
 
         try{
 
-            Optional<User> followerUserExists = userRepository.findByUsername(followerUsername);
-            Optional<User> userToBeFollowedExists = userRepository.findByUsername(toBeFollowedUsername);
+            Optional<UserTable> followerUserExists = jooqUserRepository.findByUsername(followerUsername);
+            Optional<UserTable> userToBeFollowedExists = jooqUserRepository.findByUsername(toBeUnfollowedUsername);
 
             if(!followerUserExists.isPresent()) throw new UserNotFoundException("user with id " + followerUsername + " not found");
-            if(!userToBeFollowedExists.isPresent()) throw new UserNotFoundException("user with id " + toBeFollowedUsername + " not found");
+            if(!userToBeFollowedExists.isPresent()) throw new UserNotFoundException("user with id " + toBeUnfollowedUsername + " not found");
 
-            User followerUser = followerUserExists.get();
-            User userToBeFollowed = userToBeFollowedExists.get();
+            UserTable userToBeFollowed = userToBeFollowedExists.get();
 
-            Set<String> followingList = followerUser.getFollowingUserUsernameList();
-            Set<String> followerList = userToBeFollowed.getFollowerUserUsernameList();
 
-            if(followingList.contains(toBeFollowedUsername) == false){
+            if(!jooqUserRepository.checkIfUserFollowsAnotherUser(followerUsername, toBeUnfollowedUsername)){
 
                 return FailureResponse.builder()
                         .status(HttpStatus.NOT_FOUND)
                         .message("you didn't follow the user in the first place.")
                         .build();
             }
-            followingList.remove(toBeFollowedUsername);
-            followerList.remove(followerUsername);
-            userRepository.save(followerUser);
+
+            jooqUserRepository.unfollowUser(followerUsername, toBeUnfollowedUsername);
 
             return new ProfileResponse(
-                    toBeFollowedUsername,
+                    toBeUnfollowedUsername,
                     userToBeFollowed.getBio(),
                     userToBeFollowed.getImage(),
                     false
@@ -114,14 +108,14 @@ public class UserService {
 
         try{
 
-            Optional<User> user = userRepository.findByUsername(username);
+            Optional<UserTable> user = jooqUserRepository.findByUsername(username);
 
-            Optional<User> currUser = userRepository.findByUsername(currUserUsername);
+            Optional<UserTable> currUser = jooqUserRepository.findByUsername(currUserUsername);
 
             if(!user.isPresent()) throw new UserNotFoundException("user with username " + username + " not found.");
             if(!currUser.isPresent()) throw new UserNotFoundException("user with username " + currUserUsername + " not found.");
 
-            boolean isFollowing = currUser.get().getFollowingUserUsernameList().contains(username);
+            boolean isFollowing = jooqUserRepository.checkIfUserFollowsAnotherUser(currUserUsername, username);
 
             return new ProfileResponse(
                     username,
@@ -141,49 +135,29 @@ public class UserService {
         }
     }
 
-    public CustomResponse userUpdate(String username, UserUpdateRequest userUpdateRequest){
+    public CustomResponse userUpdate(String currUserUsername, UserUpdateRequest userUpdateRequest){
 
 
 
         try{
-            User updatedUserDetails = userUpdateRequest.getUser();
 
-            Optional<User> currUserExists = userRepository.findByUsername(username);
 
-            if(!currUserExists.isPresent()) throw new UserNotFoundException("user with username " + username + " not found");
+            Optional<UserTable> currUserExists = jooqUserRepository.findByUsername(currUserUsername);
 
-            User currUser = currUserExists.get();
+            if(!currUserExists.isPresent()) throw new UserNotFoundException("user with username " + currUserUsername + " not found");
 
-            if(updatedUserDetails.getBio() != null && !updatedUserDetails.getBio().isBlank()){
+            String finalUsername = currUserUsername;
 
-                currUser.setBio(updatedUserDetails.getBio());
-            }
-            if(updatedUserDetails.getUsername() != null && !updatedUserDetails.getUsername().isBlank()){
+            jooqUserRepository.updateUser(currUserUsername, userUpdateRequest);
 
-                currUser.setUsername(updatedUserDetails.getUsername());
 
-            }
-            if(updatedUserDetails.getImage() != null && !updatedUserDetails.getImage().isBlank()){
-
-                currUser.setImage(updatedUserDetails.getImage());
-
-            }
-            if(updatedUserDetails.getPassword() != null && !updatedUserDetails.getPassword().isBlank()){
-
-                currUser.setPassword(updatedUserDetails.getPassword());
-            }
-            if(updatedUserDetails.getEmailId() != null && !updatedUserDetails.getEmailId().isBlank()){
-
-                currUser.setEmailId(updatedUserDetails.getEmailId());
-            }
-
-            userRepository.save(currUser);
+            UserTable updatedUser = jooqUserRepository.findByUsername(finalUsername).get();
 
             return UserResponse.builder()
-                    .bio(currUser.getBio())
-                    .image(currUser.getImage())
-                    .email(currUser.getEmailId())
-                    .username(currUser.getUsername())
+                    .bio(updatedUser.getBio())
+                    .image(updatedUser.getImage())
+                    .email(updatedUser.getEmailId())
+                    .username(updatedUser.getUsername())
                     .build();
 
 
@@ -200,20 +174,17 @@ public class UserService {
 
     }
 
-    public User createUser(CreateUserRequest createUserRequest){
+    public UserTable createUser(CreateUserRequest createUserRequest){
 
-        User user = User.builder()
-                .username(createUserRequest.getUsername())
-                .followingUserUsernameList(new HashSet<>())
-                .followerUserUsernameList(new HashSet<>())
-                .favouriteArticleList(new HashSet<>())
-                .emailId(createUserRequest.getEmailId())
-                .password(createUserRequest.getPassword())
-                .bio(createUserRequest.getBio())
-                .image(createUserRequest.getImageLink())
-                .build();
 
-        userRepository.save(user);
+        UserTable user = new UserTable(
+                createUserRequest.getUsername(),
+                createUserRequest.getBio(),
+                createUserRequest.getEmailId(),
+                createUserRequest.getImageLink(),
+                createUserRequest.getPassword()
+        );
+        jooqUserRepository.createUser(user);
         return user;
     }
 

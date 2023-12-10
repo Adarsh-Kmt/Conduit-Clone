@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 
 public class UpdateArticleRequest {
 
-    private String title;
     private String body;
     private String description;
 }

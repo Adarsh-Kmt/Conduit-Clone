@@ -1,6 +1,6 @@
 package kamathadarsh.Conduit.Response;
 
-import kamathadarsh.Conduit.Entity.Comment;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

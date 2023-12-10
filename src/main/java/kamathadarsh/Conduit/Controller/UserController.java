@@ -1,11 +1,11 @@
 package kamathadarsh.Conduit.Controller;
 
-import kamathadarsh.Conduit.Entity.User;
 import kamathadarsh.Conduit.Request.CreateUserRequest;
 import kamathadarsh.Conduit.Request.UserUpdateRequest;
 import kamathadarsh.Conduit.Response.CustomResponse;
 import kamathadarsh.Conduit.Response.FailureResponse;
 import kamathadarsh.Conduit.Service.UserService;
+import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +28,7 @@ public class UserController {
         return ResponseEntity.status(statusOfRequest).body(response);
     }
 
-    @DeleteMapping("/api/profiles/{followerUsername}/{toBeFollowedUsername}/unfollow")
+    @PostMapping("/api/profiles/{followerUsername}/{toBeFollowedUsername}/unfollow")
     public ResponseEntity<CustomResponse> unfollowUser(@PathVariable("followerUsername") String followerUsername,
                                                        @PathVariable("toBeFollowedUsername") String toBeFollowedUsername){
 
@@ -64,9 +64,9 @@ public class UserController {
     }
 
     @PostMapping("/test/addUser")
-    public ResponseEntity<User> addUser(@RequestBody CreateUserRequest createUserRequest){
+    public ResponseEntity<UserTable> addUser(@RequestBody CreateUserRequest createUserRequest){
 
-        User user = userService.createUser(createUserRequest);
+        UserTable user = userService.createUser(createUserRequest);
 
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
