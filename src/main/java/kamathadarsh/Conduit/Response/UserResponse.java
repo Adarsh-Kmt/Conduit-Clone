@@ -10,5 +10,5 @@ public class UserResponse extends CustomResponse{
     private String username;
     private String email;
     private String bio;
-    private String image;
+    private byte[] image;
 }
