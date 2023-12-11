@@ -52,7 +52,7 @@ public class UserService {
             return new ProfileResponse(
                     toBeFollowedUsername,
                     userToBeFollowed.get().getBio(),
-                    userToBeFollowed.get().getImage(),
+                    getProfilePicture(toBeFollowedUsername),
                     true
             );
 
@@ -99,7 +99,7 @@ public class UserService {
             return new ProfileResponse(
                     toBeUnfollowedUsername,
                     userToBeFollowed.getBio(),
-                    userToBeFollowed.getImage(),
+                    getProfilePicture(toBeUnfollowedUsername),
                     false
             );
         }
@@ -128,7 +128,7 @@ public class UserService {
             return new ProfileResponse(
                     username,
                     user.get().getBio(),
-                    user.get().getImage(),
+                    getProfilePicture(username),
                     isFollowing
 
             );
@@ -163,7 +163,7 @@ public class UserService {
 
             return UserResponse.builder()
                     .bio(updatedUser.getBio())
-                    .image(updatedUser.getImage())
+                    .image(getProfilePicture(updatedUser.getUsername()))
                     .email(updatedUser.getEmailId())
                     .username(updatedUser.getUsername())
                     .build();
@@ -230,15 +230,35 @@ public class UserService {
         }
 
 
+    }
+
+    @Transactional
+    public CustomResponse createUser(CreateUserRequest createUserRequest, MultipartFile profilePicture){
+
+
+        CustomResponse responseToSaveProfilePictureRequest
+                = saveProfilePicture(profilePicture, createUserRequest.getUsername());
+
+        if(responseToSaveProfilePictureRequest instanceof FailureResponse) return responseToSaveProfilePictureRequest;
+
+        SuccessResponse successResponse = (SuccessResponse)responseToSaveProfilePictureRequest;
+        String imageLocation = successResponse.getSuccessMessage();
+
         UserTable user = new UserTable(
                 createUserRequest.getUsername(),
                 createUserRequest.getBio(),
                 createUserRequest.getEmailId(),
-                createUserRequest.getImageLink(),
+                imageLocation,
                 createUserRequest.getPassword()
         );
         jooqUserRepository.createUser(user);
-        return user;
+
+        return UserResponse.builder()
+                .username(user.getUsername())
+                .bio(user.getBio())
+                .email(user.getEmailId())
+                .build();
+
     }
 
 
