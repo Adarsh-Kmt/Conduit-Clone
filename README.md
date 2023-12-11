@@ -25,4 +25,5 @@
 - Mark articles as favourite.
 - Comment on articles.
 - Reply to Comments.
+- Follow/Unfollow other users.
 
