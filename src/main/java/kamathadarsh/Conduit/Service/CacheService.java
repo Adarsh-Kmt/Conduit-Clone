@@ -24,6 +24,8 @@ public class CacheService {
 
     final JOOQUserRepository jooqUserRepository;
 
+    final UserService userService;
+
     public void addArticleToCache(Article article){
 
         RMap<String, ArticleCacheDTO> articleHash = redissonClient.getMap("article:");
@@ -49,7 +51,8 @@ public class CacheService {
 
     public ArticleResponse createArticleResponse(String currUserUsername, ArticleCacheDTO articleCacheDTO){
 
-        ProfileResponse authorProfile = articleCacheDTO.getAuthorProfile().convertToProfileResponse(currUserUsername);
+        String authorUsername = articleCacheDTO.getAuthorProfile().getUsername();
+        ProfileResponse authorProfile = articleCacheDTO.getAuthorProfile().convertToProfileResponse(currUserUsername, userService.getProfilePicture(authorUsername));
 
         return ArticleResponse.builder()
                 .updatedAt(articleCacheDTO.getUpdatedAt())
