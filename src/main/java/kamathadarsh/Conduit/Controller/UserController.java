@@ -5,11 +5,11 @@ import kamathadarsh.Conduit.Request.UserUpdateRequest;
 import kamathadarsh.Conduit.Response.CustomResponse;
 import kamathadarsh.Conduit.Response.FailureResponse;
 import kamathadarsh.Conduit.Service.UserService;
-import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @AllArgsConstructor
@@ -64,10 +64,23 @@ public class UserController {
     }
 
     @PostMapping("/test/addUser")
-    public ResponseEntity<UserTable> addUser(@RequestBody CreateUserRequest createUserRequest){
+    public ResponseEntity<CustomResponse> addUser(@RequestPart("profilePicture") MultipartFile profilePicture,
+                                             @RequestPart("createUserRequest") CreateUserRequest createUserRequest){
 
-        UserTable user = userService.createUser(createUserRequest);
+        CustomResponse response = userService.createUser(createUserRequest, profilePicture);
 
-        return ResponseEntity.status(HttpStatus.OK).body(user);
+        HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
+
+        return ResponseEntity.status(statusOfRequest).body(response);
+    }
+
+    @PostMapping("/test/addStockPhoto")
+    public ResponseEntity<CustomResponse> addBlankProfilePicture(@RequestPart("blankProfilePicture") MultipartFile blankProfilePicture){
+
+        CustomResponse response = userService.saveProfilePicture(blankProfilePicture, "blankProfilePicture");
+
+        HttpStatus statusOfResponse = (response instanceof FailureResponse)?HttpStatus.NOT_FOUND:HttpStatus.OK;
+
+        return ResponseEntity.status(statusOfResponse).body(response);
     }
 }
