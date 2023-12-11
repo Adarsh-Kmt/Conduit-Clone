@@ -1,22 +1,27 @@
 package kamathadarsh.Conduit.Service;
 
+import jakarta.transaction.Transactional;
 import kamathadarsh.Conduit.Exception.UserNotFoundException;
 
+import kamathadarsh.Conduit.Response.*;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 import kamathadarsh.Conduit.jooqRepository.JOOQUserRepository;
 
 import kamathadarsh.Conduit.Request.CreateUserRequest;
 import kamathadarsh.Conduit.Request.UserUpdateRequest;
 
-import kamathadarsh.Conduit.Response.CustomResponse;
-import kamathadarsh.Conduit.Response.FailureResponse;
-import kamathadarsh.Conduit.Response.ProfileResponse;
-import kamathadarsh.Conduit.Response.UserResponse;
-
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 @Service
@@ -25,6 +30,9 @@ public class UserService {
 
 
     private final JOOQUserRepository jooqUserRepository;
+
+    private static String IMAGE_DIR = "C:\\Users\\adaka\\OneDrive\\Desktop\\programming\\Springboot Projects\\Conduit-Medium-Clone\\Conduit\\src\\main\\resources\\static\\images";
+    //private static String STOCK_PHOTO_IMAGE = "C:\\Users\\adaka\\OneDrive\\Desktop\\programming\\Springboot Projects\\Conduit-Medium-Clone\\Conduit\\src\\main\\resources\\static\\images\\";
 
 
     public CustomResponse followUser(String followerUsername, String toBeFollowedUsername){
@@ -174,7 +182,52 @@ public class UserService {
 
     }
 
-    public UserTable createUser(CreateUserRequest createUserRequest){
+    public CustomResponse saveProfilePicture(MultipartFile image, String username){
+
+        try {
+            InputStream inputStream = image.getInputStream();
+            byte[] data = new byte[inputStream.available()];
+            inputStream.read(data);
+            String imageLocation = IMAGE_DIR+"\\"+username;
+            FileOutputStream fileOutputStream = new FileOutputStream(imageLocation);
+            fileOutputStream.write(data);
+
+            fileOutputStream.flush();
+            fileOutputStream.close();
+
+            //Files.copy(inputStream, Paths.get(imageLocation), StandardCopyOption.REPLACE_EXISTING);
+
+
+            return new SuccessResponse(imageLocation);
+        }
+
+        catch (IOException e) {
+
+            return FailureResponse.builder()
+                    .message("could not upload profile picture.")
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+    }
+
+    public byte[] getProfilePicture(String username){
+
+
+        try {
+            boolean fileExists = Files.exists(Paths.get(IMAGE_DIR+"\\"+username));
+
+            if(!fileExists){
+                username = "blankProfilePicture";
+            }
+            byte[] data = Files.readAllBytes(Paths.get(IMAGE_DIR+"\\"+username));
+            System.out.println((Paths.get(IMAGE_DIR+"\\"+username)).getFileName().toString());
+            return data;
+
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
 
         UserTable user = new UserTable(
