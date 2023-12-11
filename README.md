@@ -8,6 +8,15 @@
 </p>
 
 ---
+### Frameworks & Libraries Used
+---
+- Spring Boot framework
+- MySQL as the main database
+- Redis as the caching database
+- Redisson Library
+- JOOQ Library
+
+---
 ### Features
 ---
 - Create, update and delete articles.
