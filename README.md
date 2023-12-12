@@ -25,5 +25,6 @@
 - Mark articles as favourite.
 - Comment on articles.
 - Reply to Comments.
+- Personalize user profile by adding a profile picture.
 - Follow/Unfollow other users.
 
