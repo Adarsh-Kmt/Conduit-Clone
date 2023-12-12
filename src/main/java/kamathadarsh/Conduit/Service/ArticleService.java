@@ -220,9 +220,9 @@ public class ArticleService {
 
         try{
 
-            Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
+            boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
 
-            if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " not found");
+            if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " not found");
 
             jooqArticleRepository.updateArticle(articleSlug, updateArticleRequest);
 
@@ -247,7 +247,7 @@ public class ArticleService {
 
             Article article = articleExists.get();
 
-            if(jooqArticleRepository.getAuthorUsernameOfArticle(articleSlug).equals(currUserUsername)) throw new ArticleNotFoundException("only author can delete article.");
+            if(article.getAuthorUsername().equals(currUserUsername)) throw new ArticleNotFoundException("only author can delete article.");
 
             jooqArticleRepository.deleteArticle(articleSlug);
 
