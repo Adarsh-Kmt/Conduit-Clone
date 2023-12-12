@@ -2,7 +2,6 @@ package kamathadarsh.Conduit.Service;
 
 
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Comment;
-import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 
 import kamathadarsh.Conduit.Exception.ArticleNotFoundException;
 import kamathadarsh.Conduit.Exception.CommentNotFoundException;
@@ -12,7 +11,6 @@ import kamathadarsh.Conduit.Request.CommentRequest;
 import kamathadarsh.Conduit.Response.*;
 import kamathadarsh.Conduit.jooqRepository.JOOQArticleRepository;
 import kamathadarsh.Conduit.jooqRepository.JOOQCommentRepository;
-import kamathadarsh.Conduit.jooqRepository.JOOQUserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,7 +19,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 @AllArgsConstructor
@@ -33,7 +31,6 @@ public class CommentService {
 
     final JOOQCommentRepository jooqCommentRepository;
 
-    final JOOQUserRepository jooqUserRepository;
 
     public CommentResponse commentToCommentResponse(String currUserUsername, Comment comment){
 
@@ -118,9 +115,8 @@ public class CommentService {
 
         try{
 
-
-            if(!jooqCommentRepository.checkIfCommentExistsById(commentId))
-                throw new CommentNotFoundException("comment with id " + commentId + "under article with slug: " + articleSlug + " was not found.");
+            if(!jooqCommentRepository.checkIfCommentExistsByIdUnderAnArticle(commentId, articleSlug))
+                throw new CommentNotFoundException("comment with id " + commentId +  " was not found.");
 
             jooqCommentRepository.deleteCommentUnderAnArticleById(articleSlug, commentId);
 
@@ -143,9 +139,8 @@ public class CommentService {
 
         try{
 
-            boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
-            boolean commentExists = jooqCommentRepository.checkIfCommentExistsById(parentCommentId);
-            if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found");
+
+            boolean commentExists = jooqCommentRepository.checkIfCommentExistsByIdUnderAnArticle(parentCommentId, articleSlug);
             if(!commentExists) throw new CommentNotFoundException("comment with id " + parentCommentId + " was not found");
 
 
@@ -156,7 +151,7 @@ public class CommentService {
                     .build();
 
         }
-        catch(ArticleNotFoundException | CommentNotFoundException e){
+        catch(CommentNotFoundException e){
 
             return FailureResponse.builder()
                     .status(HttpStatus.NOT_FOUND)
@@ -172,9 +167,7 @@ public class CommentService {
 
         try{
 
-            boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
-            boolean commentExists = jooqCommentRepository.checkIfCommentExistsById(parentCommentId);
-            if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found");
+            boolean commentExists = jooqCommentRepository.checkIfCommentExistsByIdUnderAnArticle(parentCommentId, articleSlug);
             if(!commentExists) throw new CommentNotFoundException("comment with id " + parentCommentId + " was not found");
 
 
@@ -189,7 +182,7 @@ public class CommentService {
             return new MultipleCommentResponse(replyResponseList);
 
         }
-        catch(ArticleNotFoundException | CommentNotFoundException e){
+        catch(CommentNotFoundException e){
 
             return FailureResponse.builder()
                     .status(HttpStatus.NOT_FOUND)
