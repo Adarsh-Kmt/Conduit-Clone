@@ -1,6 +1,6 @@
 package kamathadarsh.Conduit.Service;
 
-import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Article;
+
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Comment;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 
@@ -51,9 +51,9 @@ public class CommentService {
     public CustomResponse getAllCommentsUnderAnArticle(String currUserUsername, String articleSlug){
 
         try{
-            Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
+            boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
 
-            if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " does not exist.");
+            if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " does not exist.");
 
             List<Comment> allComments = jooqCommentRepository.findAllCommentsUnderAnArticle(articleSlug);
 
@@ -82,11 +82,9 @@ public class CommentService {
 
         try{
 
-            Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
+            boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
 
-            Optional<UserTable> userExists = jooqUserRepository.findByUsername(currUserUsername);
-
-            if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " does not exist.");
+            if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " does not exist.");
 
 
             Comment comment = new Comment();
