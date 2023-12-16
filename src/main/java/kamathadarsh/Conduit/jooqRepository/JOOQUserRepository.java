@@ -1,12 +1,11 @@
 package kamathadarsh.Conduit.jooqRepository;
 
 import jakarta.transaction.Transactional;
-import kamathadarsh.Conduit.Request.UserUpdateRequest;
+import kamathadarsh.Conduit.DTO.UserUpdateDTO;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.records.UserTableRecord;
 import lombok.AllArgsConstructor;
 import org.jooq.DSLContext;
-import org.jooq.UpdateSetFirstStep;
 import org.springframework.stereotype.Repository;
 
 
@@ -84,13 +83,13 @@ public class JOOQUserRepository {
                 .set(USER_TABLE.EMAIL_ID, newUser.getEmailId())
                 .set(USER_TABLE.USERNAME, newUser.getUsername())
                 .set(USER_TABLE.BIO, newUser.getBio())
-                .set(USER_TABLE.PASSWORD, newUser.getBio())
+                .set(USER_TABLE.PASSWORD, newUser.getPassword())
                 .set(USER_TABLE.IMAGE, newUser.getImage())
                 .execute();
     }
 
     @Transactional
-    public void updateUser(String currUserUsername, UserUpdateRequest updatedUserDetails){
+    public void updateUser(String currUserUsername, UserUpdateDTO updatedUserDetails){
 
         // updating all the tables with new username, in case username was changed.
 
@@ -100,8 +99,8 @@ public class JOOQUserRepository {
 
         }
 
-        if(updatedUserDetails.getImage() != null && !updatedUserDetails.getImage().isBlank()){
-            updatedUser.set(USER_TABLE.IMAGE, updatedUserDetails.getImage());
+        if(updatedUserDetails.getImageLocation() != null && !updatedUserDetails.getImageLocation().isBlank()){
+            updatedUser.set(USER_TABLE.IMAGE, updatedUserDetails.getImageLocation());
 
 
         }
