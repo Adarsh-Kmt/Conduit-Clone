@@ -1,8 +1,11 @@
 package kamathadarsh.Conduit.Service;
 
 import jakarta.transaction.Transactional;
+import kamathadarsh.Conduit.DTO.UserUpdateDTO;
+import kamathadarsh.Conduit.Enum.ProfilePictureAction;
+import kamathadarsh.Conduit.Exception.PictureNotProvidedException;
 import kamathadarsh.Conduit.Exception.UserNotFoundException;
-
+import kamathadarsh.Conduit.Enum.ProfilePictureAction;
 import kamathadarsh.Conduit.Response.*;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 import kamathadarsh.Conduit.jooqRepository.JOOQUserRepository;
@@ -15,10 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -143,23 +143,51 @@ public class UserService {
         }
     }
 
-    public CustomResponse userUpdate(String currUserUsername, UserUpdateRequest userUpdateRequest){
-
-
+    public CustomResponse userUpdate(String currUserUsername, MultipartFile newProfilePicture, UserUpdateRequest userUpdateRequest){
 
         try{
-
 
             Optional<UserTable> currUserExists = jooqUserRepository.findByUsername(currUserUsername);
 
             if(!currUserExists.isPresent()) throw new UserNotFoundException("user with username " + currUserUsername + " not found");
 
-            String finalUsername = currUserUsername;
 
-            jooqUserRepository.updateUser(currUserUsername, userUpdateRequest);
+            ProfilePictureAction profilePictureAction = null;
 
+            for(ProfilePictureAction action : ProfilePictureAction.values()){
 
-            UserTable updatedUser = jooqUserRepository.findByUsername(finalUsername).get();
+                if(action.actionString().equalsIgnoreCase(userUpdateRequest.getProfilePictureActionString())){
+
+                    profilePictureAction = action;
+                }
+            }
+
+            String imageLocation = null;
+
+            if(profilePictureAction != null){
+
+                if(profilePictureAction == ProfilePictureAction.APPEND){
+
+                    if(newProfilePicture.isEmpty()) throw new PictureNotProvidedException("picture not provided.");
+                    else saveProfilePicture(newProfilePicture, currUserUsername);
+                    imageLocation = IMAGE_DIR+"\\"+currUserUsername;
+                }
+                else if(profilePictureAction == ProfilePictureAction.DELETE){
+                    deleteProfilePicture(currUserUsername);
+                    imageLocation = IMAGE_DIR+"\\"+"blankProfilePicture";
+                }
+
+            }
+
+            UserUpdateDTO userUpdateDTO = UserUpdateDTO.builder()
+                    .emailId(userUpdateRequest.getEmailId())
+                    .password(userUpdateRequest.getPassword())
+                    .bio(userUpdateRequest.getBio())
+                    .imageLocation(imageLocation)
+                    .build();
+            jooqUserRepository.updateUser(currUserUsername, userUpdateDTO);
+
+            UserTable updatedUser = jooqUserRepository.findByUsername(currUserUsername).get();
 
             return UserResponse.builder()
                     .bio(updatedUser.getBio())
@@ -171,7 +199,7 @@ public class UserService {
 
         }
 
-        catch(UserNotFoundException e){
+        catch(PictureNotProvidedException | UserNotFoundException e){
 
             return FailureResponse.builder()
                     .message(e.getMessage())
@@ -252,7 +280,7 @@ public class UserService {
             CustomResponse responseToSaveProfilePictureRequest
                     = saveProfilePicture(profilePicture, createUserRequest.getUsername());
 
-        if(responseToSaveProfilePictureRequest instanceof FailureResponse) return responseToSaveProfilePictureRequest;
+            if(responseToSaveProfilePictureRequest instanceof FailureResponse) return responseToSaveProfilePictureRequest;
 
             SuccessResponse successResponse = (SuccessResponse)responseToSaveProfilePictureRequest;
             imageLocation = successResponse.getSuccessMessage();
