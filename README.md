@@ -10,11 +10,16 @@
 ---
 ### Frameworks & Libraries Used
 ---
-- Spring Boot framework
-- MySQL as the main database
-- Redis as the caching database
-- Redisson Library
-- JOOQ Library
+
+|       Tools                |                                 Link                                 |
+|:---------------------------|:--------------------------------------------------------------------:|
+| 🤖  Language              |           [Java](https://www.java.com/en/)                           |
+| 💚  Framework             | [SpringBoot](https://spring.io/projects/spring-boot)                 |
+| 📁  DB Access             |            [jOOQ](https://www.jooq.org/)                             |
+| 📼  Caching DB            |           [Redis](https://redis.io/)                                 |
+| 📁  Main DB               |           [MySql](https://www.mysql.com/)                            |
+| 🔍  Caching Library       |           [Redission Library](https://github.com/redisson/redisson)  |
+  
 
 ---
 ### Features
