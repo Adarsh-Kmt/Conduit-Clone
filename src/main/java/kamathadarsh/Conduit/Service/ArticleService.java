@@ -1,6 +1,6 @@
 package kamathadarsh.Conduit.Service;
 
-import jakarta.persistence.EntityManager;
+
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Article;
 
 import kamathadarsh.Conduit.Exception.ArticleNotFoundException;
@@ -11,9 +11,6 @@ import kamathadarsh.Conduit.Request.PostArticleRequest;
 import kamathadarsh.Conduit.Request.UpdateArticleRequest;
 import kamathadarsh.Conduit.Response.*;
 import kamathadarsh.Conduit.jooqRepository.JOOQArticleRepository;
-import kamathadarsh.Conduit.jooqRepository.JOOQCommentRepository;
-import kamathadarsh.Conduit.jooqRepository.JOOQTagRepository;
-import kamathadarsh.Conduit.jooqRepository.JOOQUserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -32,16 +29,10 @@ public class ArticleService {
 
     final JOOQArticleRepository jooqArticleRepository;
 
-    final JOOQTagRepository jooqTagRepository;
     final UserService userService;
 
     final CacheService cacheService;
 
-    final EntityManager entityManager;
-
-    final JOOQUserRepository jooqUserRepository;
-
-    final JOOQCommentRepository jooqCommentRepository;
     final TagService tagService;
 
 
@@ -229,9 +220,9 @@ public class ArticleService {
 
         try{
 
-            Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
+            boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
 
-            if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " not found");
+            if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " not found");
 
             jooqArticleRepository.updateArticle(articleSlug, updateArticleRequest);
 
@@ -256,7 +247,7 @@ public class ArticleService {
 
             Article article = articleExists.get();
 
-            if(jooqArticleRepository.getAuthorUsernameOfArticle(articleSlug).equals(currUserUsername)) throw new ArticleNotFoundException("only author can delete article.");
+            if(article.getAuthorUsername().equals(currUserUsername)) throw new ArticleNotFoundException("only author can delete article.");
 
             jooqArticleRepository.deleteArticle(articleSlug);
 

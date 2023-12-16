@@ -1,19 +1,20 @@
-package kamathadarsh.Conduit.Request;
+package kamathadarsh.Conduit.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Data
-@Builder
+
 @AllArgsConstructor
+@Builder
 @NoArgsConstructor
-public class UserUpdateRequest {
+@Getter
+public class UserUpdateDTO {
 
     private String emailId;
     private String password;
-    private String profilePictureActionString;
+    private String imageLocation;
     private String bio;
 
 }

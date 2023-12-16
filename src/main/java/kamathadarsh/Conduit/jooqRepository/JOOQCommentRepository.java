@@ -46,10 +46,11 @@ public class JOOQCommentRepository {
 
     }
 
-    public boolean checkIfCommentExistsById(Long commentId){
+    public boolean checkIfCommentExistsByIdUnderAnArticle(Long commentId, String articleSlug){
 
         return dslContext.fetchExists(dslContext.selectFrom(COMMENT)
-                .where(COMMENT.ID.eq(commentId)));
+                .where(COMMENT.ID.eq(commentId))
+                .and(COMMENT.ARTICLE_SLUG.eq(articleSlug)));
 
 
 

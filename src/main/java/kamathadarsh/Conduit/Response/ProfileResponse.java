@@ -13,6 +13,6 @@ public class ProfileResponse extends CustomResponse implements Serializable {
 
     private String username;
     private String bio;
-    private String image;
+    private byte[] image;
     private Boolean following;
 }

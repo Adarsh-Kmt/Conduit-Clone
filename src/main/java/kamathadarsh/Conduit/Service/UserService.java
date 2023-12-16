@@ -1,22 +1,27 @@
 package kamathadarsh.Conduit.Service;
 
+import jakarta.transaction.Transactional;
+import kamathadarsh.Conduit.DTO.UserUpdateDTO;
+import kamathadarsh.Conduit.Enum.ProfilePictureAction;
+import kamathadarsh.Conduit.Exception.PictureNotProvidedException;
 import kamathadarsh.Conduit.Exception.UserNotFoundException;
-
+import kamathadarsh.Conduit.Enum.ProfilePictureAction;
+import kamathadarsh.Conduit.Response.*;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 import kamathadarsh.Conduit.jooqRepository.JOOQUserRepository;
 
 import kamathadarsh.Conduit.Request.CreateUserRequest;
 import kamathadarsh.Conduit.Request.UserUpdateRequest;
 
-import kamathadarsh.Conduit.Response.CustomResponse;
-import kamathadarsh.Conduit.Response.FailureResponse;
-import kamathadarsh.Conduit.Response.ProfileResponse;
-import kamathadarsh.Conduit.Response.UserResponse;
-
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 @Service
@@ -25,6 +30,9 @@ public class UserService {
 
 
     private final JOOQUserRepository jooqUserRepository;
+
+    private static String IMAGE_DIR = "C:\\Users\\adaka\\OneDrive\\Desktop\\programming\\Springboot Projects\\Conduit-Medium-Clone\\Conduit\\src\\main\\resources\\static\\images";
+    //private static String STOCK_PHOTO_IMAGE = "C:\\Users\\adaka\\OneDrive\\Desktop\\programming\\Springboot Projects\\Conduit-Medium-Clone\\Conduit\\src\\main\\resources\\static\\images\\";
 
 
     public CustomResponse followUser(String followerUsername, String toBeFollowedUsername){
@@ -44,7 +52,7 @@ public class UserService {
             return new ProfileResponse(
                     toBeFollowedUsername,
                     userToBeFollowed.get().getBio(),
-                    userToBeFollowed.get().getImage(),
+                    getProfilePicture(toBeFollowedUsername),
                     true
             );
 
@@ -91,7 +99,7 @@ public class UserService {
             return new ProfileResponse(
                     toBeUnfollowedUsername,
                     userToBeFollowed.getBio(),
-                    userToBeFollowed.getImage(),
+                    getProfilePicture(toBeUnfollowedUsername),
                     false
             );
         }
@@ -120,7 +128,7 @@ public class UserService {
             return new ProfileResponse(
                     username,
                     user.get().getBio(),
-                    user.get().getImage(),
+                    getProfilePicture(username),
                     isFollowing
 
             );
@@ -135,27 +143,55 @@ public class UserService {
         }
     }
 
-    public CustomResponse userUpdate(String currUserUsername, UserUpdateRequest userUpdateRequest){
-
-
+    public CustomResponse userUpdate(String currUserUsername, MultipartFile newProfilePicture, UserUpdateRequest userUpdateRequest){
 
         try{
-
 
             Optional<UserTable> currUserExists = jooqUserRepository.findByUsername(currUserUsername);
 
             if(!currUserExists.isPresent()) throw new UserNotFoundException("user with username " + currUserUsername + " not found");
 
-            String finalUsername = currUserUsername;
 
-            jooqUserRepository.updateUser(currUserUsername, userUpdateRequest);
+            ProfilePictureAction profilePictureAction = null;
 
+            for(ProfilePictureAction action : ProfilePictureAction.values()){
 
-            UserTable updatedUser = jooqUserRepository.findByUsername(finalUsername).get();
+                if(action.actionString().equalsIgnoreCase(userUpdateRequest.getProfilePictureActionString())){
+
+                    profilePictureAction = action;
+                }
+            }
+
+            String imageLocation = null;
+
+            if(profilePictureAction != null){
+
+                if(profilePictureAction == ProfilePictureAction.APPEND){
+
+                    if(newProfilePicture.isEmpty()) throw new PictureNotProvidedException("picture not provided.");
+                    else saveProfilePicture(newProfilePicture, currUserUsername);
+                    imageLocation = IMAGE_DIR+"\\"+currUserUsername;
+                }
+                else if(profilePictureAction == ProfilePictureAction.DELETE){
+                    deleteProfilePicture(currUserUsername);
+                    imageLocation = IMAGE_DIR+"\\"+"blankProfilePicture";
+                }
+
+            }
+
+            UserUpdateDTO userUpdateDTO = UserUpdateDTO.builder()
+                    .emailId(userUpdateRequest.getEmailId())
+                    .password(userUpdateRequest.getPassword())
+                    .bio(userUpdateRequest.getBio())
+                    .imageLocation(imageLocation)
+                    .build();
+            jooqUserRepository.updateUser(currUserUsername, userUpdateDTO);
+
+            UserTable updatedUser = jooqUserRepository.findByUsername(currUserUsername).get();
 
             return UserResponse.builder()
                     .bio(updatedUser.getBio())
-                    .image(updatedUser.getImage())
+                    .image(getProfilePicture(updatedUser.getUsername()))
                     .email(updatedUser.getEmailId())
                     .username(updatedUser.getUsername())
                     .build();
@@ -163,7 +199,7 @@ public class UserService {
 
         }
 
-        catch(UserNotFoundException e){
+        catch(PictureNotProvidedException | UserNotFoundException e){
 
             return FailureResponse.builder()
                     .message(e.getMessage())
@@ -174,18 +210,100 @@ public class UserService {
 
     }
 
-    public UserTable createUser(CreateUserRequest createUserRequest){
+    public void deleteProfilePicture(String currUserUsername){
+
+        String imageLocation = IMAGE_DIR+"\\"+currUserUsername;
+
+        File profilePictureToBeDeleted = new File(imageLocation);
+
+        if(profilePictureToBeDeleted.exists()){
+
+            profilePictureToBeDeleted.delete();
+        }
+    }
+    public CustomResponse saveProfilePicture(MultipartFile image, String username){
+
+        try {
+            InputStream inputStream = image.getInputStream();
+//            byte[] data = new byte[inputStream.available()];
+//            inputStream.read(data);
+            String imageLocation = IMAGE_DIR+"\\"+username;
+//            FileOutputStream fileOutputStream = new FileOutputStream(imageLocation);
+//            fileOutputStream.write(data);
+//
+//            fileOutputStream.flush();
+//            fileOutputStream.close();
+
+            Files.copy(inputStream, Paths.get(imageLocation), StandardCopyOption.REPLACE_EXISTING);
+
+
+            return new SuccessResponse(imageLocation);
+        }
+
+        catch (IOException e) {
+
+            return FailureResponse.builder()
+                    .message("could not upload profile picture.")
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+    }
+
+    public byte[] getProfilePicture(String username){
+
+
+        try {
+            boolean fileExists = Files.exists(Paths.get(IMAGE_DIR+"\\"+username));
+
+            if(!fileExists){
+                username = "blankProfilePicture";
+            }
+            byte[] data = Files.readAllBytes(Paths.get(IMAGE_DIR+"\\"+username));
+            System.out.println((Paths.get(IMAGE_DIR+"\\"+username)).getFileName().toString());
+            return data;
+
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    @Transactional
+    public CustomResponse createUser(CreateUserRequest createUserRequest, MultipartFile profilePicture){
+
+        String imageLocation = null;
+        
+        if(!profilePicture.isEmpty()){
+            CustomResponse responseToSaveProfilePictureRequest
+                    = saveProfilePicture(profilePicture, createUserRequest.getUsername());
+
+            if(responseToSaveProfilePictureRequest instanceof FailureResponse) return responseToSaveProfilePictureRequest;
+
+            SuccessResponse successResponse = (SuccessResponse)responseToSaveProfilePictureRequest;
+            imageLocation = successResponse.getSuccessMessage();
+        }
+        else imageLocation = IMAGE_DIR+"\\"+"blankProfilePhoto";
 
 
         UserTable user = new UserTable(
                 createUserRequest.getUsername(),
                 createUserRequest.getBio(),
                 createUserRequest.getEmailId(),
-                createUserRequest.getImageLink(),
+                imageLocation,
                 createUserRequest.getPassword()
         );
         jooqUserRepository.createUser(user);
-        return user;
+
+        return UserResponse.builder()
+                .username(user.getUsername())
+                .bio(user.getBio())
+                .email(user.getEmailId())
+                .image(getProfilePicture(createUserRequest.getUsername()))
+                .build();
+
     }
 
 
