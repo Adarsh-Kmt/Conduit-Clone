@@ -182,20 +182,31 @@ public class UserService {
 
     }
 
+    public void deleteProfilePicture(String currUserUsername){
+
+        String imageLocation = IMAGE_DIR+"\\"+currUserUsername;
+
+        File profilePictureToBeDeleted = new File(imageLocation);
+
+        if(profilePictureToBeDeleted.exists()){
+
+            profilePictureToBeDeleted.delete();
+        }
+    }
     public CustomResponse saveProfilePicture(MultipartFile image, String username){
 
         try {
             InputStream inputStream = image.getInputStream();
-            byte[] data = new byte[inputStream.available()];
-            inputStream.read(data);
+//            byte[] data = new byte[inputStream.available()];
+//            inputStream.read(data);
             String imageLocation = IMAGE_DIR+"\\"+username;
-            FileOutputStream fileOutputStream = new FileOutputStream(imageLocation);
-            fileOutputStream.write(data);
+//            FileOutputStream fileOutputStream = new FileOutputStream(imageLocation);
+//            fileOutputStream.write(data);
+//
+//            fileOutputStream.flush();
+//            fileOutputStream.close();
 
-            fileOutputStream.flush();
-            fileOutputStream.close();
-
-            //Files.copy(inputStream, Paths.get(imageLocation), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(inputStream, Paths.get(imageLocation), StandardCopyOption.REPLACE_EXISTING);
 
 
             return new SuccessResponse(imageLocation);
