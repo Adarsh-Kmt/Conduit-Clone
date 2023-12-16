@@ -235,14 +235,19 @@ public class UserService {
     @Transactional
     public CustomResponse createUser(CreateUserRequest createUserRequest, MultipartFile profilePicture){
 
-
-        CustomResponse responseToSaveProfilePictureRequest
-                = saveProfilePicture(profilePicture, createUserRequest.getUsername());
+        String imageLocation = null;
+        
+        if(!profilePicture.isEmpty()){
+            CustomResponse responseToSaveProfilePictureRequest
+                    = saveProfilePicture(profilePicture, createUserRequest.getUsername());
 
         if(responseToSaveProfilePictureRequest instanceof FailureResponse) return responseToSaveProfilePictureRequest;
 
-        SuccessResponse successResponse = (SuccessResponse)responseToSaveProfilePictureRequest;
-        String imageLocation = successResponse.getSuccessMessage();
+            SuccessResponse successResponse = (SuccessResponse)responseToSaveProfilePictureRequest;
+            imageLocation = successResponse.getSuccessMessage();
+        }
+        else imageLocation = IMAGE_DIR+"\\"+"blankProfilePhoto";
+
 
         UserTable user = new UserTable(
                 createUserRequest.getUsername(),
@@ -257,6 +262,7 @@ public class UserService {
                 .username(user.getUsername())
                 .bio(user.getBio())
                 .email(user.getEmailId())
+                .image(getProfilePicture(createUserRequest.getUsername()))
                 .build();
 
     }
