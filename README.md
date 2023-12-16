@@ -24,7 +24,7 @@
 - Get a global feed of articles, which can be filtered by author, tags, favourited or not.
 - Mark articles as favourite.
 - Comment on articles.
-- Reply to Comments.
-- Personalize user profile by adding a profile picture.
+- Reply to comments.
+- Personalize your user profile by adding a profile picture.
 - Follow/Unfollow other users.
 
