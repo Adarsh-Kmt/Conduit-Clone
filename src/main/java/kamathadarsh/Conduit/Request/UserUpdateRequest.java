@@ -13,7 +13,7 @@ public class UserUpdateRequest {
 
     private String emailId;
     private String password;
-    private String image;
+    private String profilePictureActionString;
     private String bio;
 
 }
