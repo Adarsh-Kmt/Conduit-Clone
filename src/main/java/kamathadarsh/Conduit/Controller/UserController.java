@@ -53,9 +53,10 @@ public class UserController {
 
     @PutMapping("/api/{username}/user")
     public ResponseEntity<CustomResponse> updateUser(@PathVariable("username") String username,
-                                                     @RequestBody UserUpdateRequest userUpdateRequest){
+                                                     @RequestPart("newProfilePicture") MultipartFile newProfilePicture,
+                                                     @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest){
 
-        CustomResponse response = userService.userUpdate(username, userUpdateRequest);
+        CustomResponse response = userService.userUpdate(username, newProfilePicture,userUpdateRequest);
 
         HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
 
