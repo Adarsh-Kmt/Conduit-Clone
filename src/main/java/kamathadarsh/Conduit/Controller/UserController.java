@@ -1,5 +1,8 @@
 package kamathadarsh.Conduit.Controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import kamathadarsh.Conduit.CustomValidationAnnotations.ValidImage;
 import kamathadarsh.Conduit.Request.CreateUserRequest;
 import kamathadarsh.Conduit.Request.UserUpdateRequest;
 import kamathadarsh.Conduit.Response.CustomResponse;
@@ -8,18 +11,25 @@ import kamathadarsh.Conduit.Service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @AllArgsConstructor
+@Validated
 public class UserController {
 
+    /*
+    TODO:
+        validate all usernames other than currUserUsername.
+     */
     private final UserService userService;
 
     @PostMapping("/api/profiles/{followerUsername}/{toBeFollowedUsername}/follow")
     public ResponseEntity<CustomResponse> followUser(@PathVariable("followerUsername") String followerUsername,
-                                                     @PathVariable("toBeFollowedUsername") String toBeFollowedUsername){
+                                                     @PathVariable("toBeFollowedUsername") @NotNull
+                                                     String toBeFollowedUsername){
 
         CustomResponse response = userService.followUser(followerUsername, toBeFollowedUsername);
 
@@ -30,7 +40,8 @@ public class UserController {
 
     @PostMapping("/api/profiles/{followerUsername}/{toBeFollowedUsername}/unfollow")
     public ResponseEntity<CustomResponse> unfollowUser(@PathVariable("followerUsername") String followerUsername,
-                                                       @PathVariable("toBeFollowedUsername") String toBeFollowedUsername){
+                                                       @PathVariable("toBeFollowedUsername") @NotNull
+                                                       String toBeFollowedUsername){
 
         CustomResponse response = userService.unfollowUser(followerUsername, toBeFollowedUsername);
 
@@ -50,11 +61,18 @@ public class UserController {
         return ResponseEntity.status(statusOfRequest).body(response);
     }
 
+    /*
+    TODO:
+        validate user update request:
+        1) profile picture file type
+        2) emailId field (@Email)
+     */
 
     @PutMapping("/api/{username}/user")
     public ResponseEntity<CustomResponse> updateUser(@PathVariable("username") String username,
-                                                     @RequestPart("newProfilePicture") MultipartFile newProfilePicture,
-                                                     @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest){
+                                                     @RequestPart("newProfilePicture") @ValidImage
+                                                     MultipartFile newProfilePicture,
+                                                     @RequestPart("userUpdateRequest") @Valid UserUpdateRequest userUpdateRequest){
 
         CustomResponse response = userService.userUpdate(username, newProfilePicture,userUpdateRequest);
 
@@ -64,9 +82,19 @@ public class UserController {
 
     }
 
+    /*
+    TODO:
+        validate create user request.
+        fields to be validated :
+        1) emailId (@Email)
+        2) strength of password
+        3) profile picture file type.
+
+     */
     @PostMapping("/test/addUser")
-    public ResponseEntity<CustomResponse> addUser(@RequestPart("profilePicture") MultipartFile profilePicture,
-                                             @RequestPart("createUserRequest") CreateUserRequest createUserRequest){
+    public ResponseEntity<CustomResponse> addUser(@RequestPart("profilePicture") @ValidImage
+                                                      MultipartFile profilePicture,
+                                             @RequestPart("createUserRequest") @Valid CreateUserRequest createUserRequest){
 
         CustomResponse response = userService.createUser(createUserRequest, profilePicture);
 
@@ -75,8 +103,14 @@ public class UserController {
         return ResponseEntity.status(statusOfRequest).body(response);
     }
 
+    /*
+    TODO:
+        validate file type of profile picture sent.
+
+     */
     @PostMapping("/test/addStockPhoto")
-    public ResponseEntity<CustomResponse> addBlankProfilePicture(@RequestPart("blankProfilePicture") MultipartFile blankProfilePicture){
+    public ResponseEntity<CustomResponse> addBlankProfilePicture(@RequestPart("blankProfilePicture") @ValidImage
+                                                                     MultipartFile blankProfilePicture){
 
         CustomResponse response = userService.saveProfilePicture(blankProfilePicture, "blankProfilePicture");
 
