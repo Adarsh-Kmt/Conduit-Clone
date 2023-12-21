@@ -22,27 +22,6 @@ public class PasswordStrengthValidator implements ConstraintValidator<PasswordSt
     @Override
     public boolean isValid(String password, ConstraintValidatorContext constraintValidatorContext) {
 
-//        PasswordValidator passwordValidator = new PasswordValidator(Arrays.asList(
-//
-//                new LengthRule(6, 30),
-//
-//                new CharacterRule(EnglishCharacterData.UpperCase, 1),
-//
-//                new CharacterRule(EnglishCharacterData.Special, 1),
-//
-//                new CharacterRule(EnglishCharacterData.Digit, 1),
-//
-//                new CharacterRule(EnglishCharacterData.LowerCase, 1),
-//
-//                new WhitespaceRule()
-//        ));
-//
-//        RuleResult result = passwordValidator.validate(new PasswordData(password));
-//
-//        if(!result.isValid()){
-//           return false;
-//        }
-
         Matcher matcher = pattern.matcher(password);
 
         return matcher.matches();
