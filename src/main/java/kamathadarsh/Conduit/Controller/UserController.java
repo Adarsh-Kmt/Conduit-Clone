@@ -52,7 +52,7 @@ public class UserController {
 
     @GetMapping("/api/profiles/{currUserUsername}/{username}")
     public ResponseEntity<CustomResponse> getProfile(@PathVariable("currUserUsername") String currUserUsername,
-                                                     @PathVariable("username") String username){
+                                                     @PathVariable("username") @NotNull String username){
 
         CustomResponse response = userService.getProfile(username, currUserUsername);
 
