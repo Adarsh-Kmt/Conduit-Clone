@@ -5,7 +5,6 @@ import kamathadarsh.Conduit.DTO.UserUpdateDTO;
 import kamathadarsh.Conduit.Enum.ProfilePictureAction;
 import kamathadarsh.Conduit.Exception.PictureNotProvidedException;
 import kamathadarsh.Conduit.Exception.UserNotFoundException;
-import kamathadarsh.Conduit.Enum.ProfilePictureAction;
 import kamathadarsh.Conduit.Response.*;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 import kamathadarsh.Conduit.jooqRepository.JOOQUserRepository;
