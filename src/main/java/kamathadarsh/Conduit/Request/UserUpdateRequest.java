@@ -1,5 +1,6 @@
 package kamathadarsh.Conduit.Request;
 
+import jakarta.validation.constraints.Email;
 import kamathadarsh.Conduit.CustomValidationAnnotations.PasswordStrengthCheck;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserUpdateRequest {
 
+    @Email
     private String emailId;
 
     @PasswordStrengthCheck
