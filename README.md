@@ -34,4 +34,5 @@
 - Reply to comments.
 - Personalize your user profile by adding a profile picture.
 - Follow/Unfollow other users.
+- Subscribe for a daily digest of the latest articles, sent to you by email.
 
