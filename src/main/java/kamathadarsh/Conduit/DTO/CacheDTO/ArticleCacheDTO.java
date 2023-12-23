@@ -1,4 +1,4 @@
-package kamathadarsh.Conduit.CacheDTO;
+package kamathadarsh.Conduit.DTO.CacheDTO;
 
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Article;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
