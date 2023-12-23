@@ -1,5 +1,7 @@
 package kamathadarsh.Conduit.jooqRepository;
 
+import kamathadarsh.Conduit.CustomRecordMapper.EmailArticleDTOMapper;
+import kamathadarsh.Conduit.DTO.EmailDTO.EmailArticleDTO;
 import kamathadarsh.Conduit.Request.GetArticleRequest;
 import kamathadarsh.Conduit.Request.UpdateArticleRequest;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Article;
@@ -18,6 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static kamathadarsh.Conduit.jooq.jooqGenerated.Tables.*;
+
 
 
 @AllArgsConstructor
@@ -92,7 +95,6 @@ public class JOOQArticleRepository {
 
         
     }
-
     public List<Article> globalFeed(String currUserUsername, GetArticleRequest getArticleRequest){
 
 //        SelectQuery query = dslContext.selectFrom(ARTICLE).getQuery();
@@ -137,6 +139,8 @@ public class JOOQArticleRepository {
                 .where(tagFilter ? ARTICLE_TAG_TABLE.TAG_NAME.in(listOfTags):DSL.trueCondition())
                 .and(isFavourited?USER_FAVOURITE_ARTICLE_TABLE.USERNAME.eq(currUserUsername):DSL.trueCondition())
                 .and(authorFilter?ARTICLE.AUTHOR_USERNAME.eq(authorUsername):DSL.trueCondition())
+                .orderBy(ARTICLE.UPDATED_AT.desc())
+                .limit(getArticleRequest.getLimit())
                 .fetchInto(Article.class);
 
 
@@ -204,6 +208,23 @@ public class JOOQArticleRepository {
                 .where(USER_FAVOURITE_ARTICLE_TABLE.ARTICLE_SLUG.eq(articleSlug))
                 .execute();
 
+
+
+    }
+
+    public List<EmailArticleDTO> emailFeed(GetArticleRequest getArticleRequest){
+
+        List<ArticleRecord> records =  dslContext.select(
+                        ARTICLE.TITLE,
+                        ARTICLE.DESCRIPTION,
+                        ARTICLE.SLUG)
+                .from(ARTICLE)
+                .orderBy(ARTICLE.UPDATED_AT.desc())
+                .limit(getArticleRequest.getLimit())
+                .fetchInto(ArticleRecord.class);
+
+        EmailArticleDTOMapper mapper = new EmailArticleDTOMapper();
+        return records.stream().map(record -> mapper.map(record)).toList();
 
 
     }
