@@ -83,6 +83,23 @@
 			<version>7.0.2.Final</version> <!-- Use the latest version available -->
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jetbrains</groupId>
+			<artifactId>annotations</artifactId>
+			<version>22.0.0</version> <!-- Use the latest version available -->
+			<scope>compile</scope>
+		</dependency>
+
 
 	</dependencies>
 
