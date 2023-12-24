@@ -1,6 +1,6 @@
 package kamathadarsh.Conduit.Service;
 
-import kamathadarsh.Conduit.CacheDTO.ArticleCacheDTO;
+import kamathadarsh.Conduit.DTO.CacheDTO.ArticleCacheDTO;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Article;
 import kamathadarsh.Conduit.Response.ArticleResponse;
 import kamathadarsh.Conduit.Response.CustomResponse;

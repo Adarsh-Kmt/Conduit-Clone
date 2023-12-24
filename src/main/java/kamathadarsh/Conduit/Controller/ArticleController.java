@@ -84,7 +84,7 @@ public class ArticleController {
 
     }
 
-    @DeleteMapping("/api/user/{username}/articles/{slug}/favorite")
+    @DeleteMapping("/api/user/{username}/articles/{slug}/unfavorite")
     public ResponseEntity<CustomResponse> unfavouriteArticle(@PathVariable("username") String currUserUsername,
                                                              @PathVariable("slug") @NotNull String articleSlug)
     {

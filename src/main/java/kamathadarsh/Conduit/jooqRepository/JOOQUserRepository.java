@@ -1,6 +1,8 @@
 package kamathadarsh.Conduit.jooqRepository;
 
 import jakarta.transaction.Transactional;
+import kamathadarsh.Conduit.CustomRecordMapper.EmailUserDTOMapper;
+import kamathadarsh.Conduit.DTO.EmailDTO.EmailUserDTO;
 import kamathadarsh.Conduit.DTO.UserUpdateDTO;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.records.UserTableRecord;
@@ -21,6 +23,17 @@ public class JOOQUserRepository {
     private final DSLContext dslContext;
 
 
+    public List<EmailUserDTO> getEmailUserInfo(){
+
+        List<UserTableRecord> records = dslContext.select(USER_TABLE.EMAIL_ID,
+                        USER_TABLE.USERNAME)
+                .from(USER_TABLE)
+                .fetchInto(UserTableRecord.class);
+
+        EmailUserDTOMapper mapper = new EmailUserDTOMapper();
+
+        return records.stream().map(record -> mapper.map(record)).toList();
+    }
     public Optional<UserTable> findByUsername(String username){
 
         return Optional.ofNullable(dslContext.select(
