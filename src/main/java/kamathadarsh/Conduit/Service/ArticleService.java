@@ -150,15 +150,23 @@ public class ArticleService {
     public CustomResponse favouriteArticle(String currUserUsername, String articleSlug){
 
         try{
-            Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
+            boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
 
-            if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found.");
+            if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found.");
 
-            Article article = articleExists.get();
+            if(jooqArticleRepository.articleIsFavouritedByUser(currUserUsername, articleSlug)){
+
+                return FailureResponse.builder()
+                        .message("you have already favourited this article.")
+                        .status(HttpStatus.NOT_FOUND)
+                        .build();
+            }
 
             jooqArticleRepository.favouriteArticle(articleSlug, currUserUsername);
 
-            return createArticleResponse(currUserUsername, article);
+            Optional<Article> updatedArticle = jooqArticleRepository.findArticleBySlug(articleSlug);
+
+            return createArticleResponse(currUserUsername, updatedArticle.get());
 
 
         }
@@ -184,11 +192,9 @@ public class ArticleService {
 
         try{
 
-            Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
+            boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
 
-            if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found.");
-
-            Article article = articleExists.get();
+            if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found.");
 
             if(!jooqArticleRepository.articleIsFavouritedByUser(currUserUsername, articleSlug)){
 
@@ -200,7 +206,9 @@ public class ArticleService {
 
             jooqArticleRepository.unfavouriteArticle(articleSlug, currUserUsername);
 
-            return createArticleResponse(currUserUsername, article);
+            Optional<Article> updatedArticle = jooqArticleRepository.findArticleBySlug(articleSlug);
+
+            return createArticleResponse(currUserUsername, updatedArticle.get());
 
 
         }
