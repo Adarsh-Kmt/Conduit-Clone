@@ -72,7 +72,8 @@ public class ArticleService {
                 0,
                 postArticleRequest.getTitle(),
                 LocalDateTime.now(),
-                currUserUsername);
+                currUserUsername,
+        5);
 
 
         jooqArticleRepository.createArticle(newArticle);
