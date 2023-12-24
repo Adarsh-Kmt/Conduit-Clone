@@ -33,7 +33,23 @@ public class EmailContentBuilderService {
 
         Context thymeLeafContext = new Context();
 
-        String congratulatoryMessage = "congratulations "+ recipientUsername+", your article \"" + articleTitle + "\" has " + numberOfLikes + " likes.";
+        String congratulatoryMessage =
+                "Dear, " + recipientUsername+ "\n" +
+                "\n" +
+                "We're thrilled to share some exciting news with you — your article, \""+articleTitle+"\", has reached a remarkable milestone! \uD83C\uDF1F\n" +
+                "\n" +
+                "\uD83D\uDC4F Milestone Achievement: "+ numberOfLikes + " Likes! \uD83D\uDC4D\n" +
+                "\n" +
+                "Your content has resonated with our community, and the positive response is a testament to the quality of your work. We're genuinely impressed by the impact your words have had on our readers.\n" +
+                "\n" +
+                "Your dedication to creating valuable and engaging content is truly commendable, and it's clear that your insights are making a difference. Thank you for contributing to the vibrant community we're building together.\n" +
+                "\n" +
+                "Keep up the fantastic work! We're looking forward to celebrating many more milestones with you.\n" +
+                "\n" +
+                "Cheers to your success!\n" +
+                "\n" +
+                "Best regards,\n" +
+                "Conduit Team";
         thymeLeafContext.setVariable("title", "Your Article is Popular");
         thymeLeafContext.setVariable("body", congratulatoryMessage);
 
