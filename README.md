@@ -34,5 +34,6 @@
 - Reply to comments.
 - Personalize your user profile by adding a profile picture.
 - Follow/Unfollow other users.
-- Subscribe for a daily digest of the latest articles, sent to you by email.
+- Subscribe to a daily digest of the latest articles, sent to you by email.
+- Receive congratulatory emails commemorating the achievement when your article breaks a favorite count milestone.
 
