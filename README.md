@@ -4,7 +4,7 @@
 ### Database Schema Design (EER)
 ---
 <p align="center">
-  <img src="art/Conduit%20EER.png" alt="EER Diagram">
+  <img src="art/Updated%20Conduit%20EER.png" alt="EER Diagram">
 </p>
 
 ---
