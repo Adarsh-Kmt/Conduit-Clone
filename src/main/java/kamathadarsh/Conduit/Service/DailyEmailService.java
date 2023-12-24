@@ -12,6 +12,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,7 @@ public class DailyEmailService {
     private final JOOQArticleRepository jooqArticleRepository;
 
     @Scheduled(initialDelay = 5000, fixedRate = 1000*60*60*24)
+    @Async
     public void sendDailyDigestOfArticlesEmail(){
 
         List<EmailUserDTO> listOfEmailUserInfo = jooqUserRepository.getEmailUserInfo();
