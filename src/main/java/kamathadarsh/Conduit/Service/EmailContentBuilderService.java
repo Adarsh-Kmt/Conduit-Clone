@@ -34,7 +34,7 @@ public class EmailContentBuilderService {
         Context thymeLeafContext = new Context();
 
         String congratulatoryMessage =
-                "Dear, " + recipientUsername+ "\n" +
+                "Dear " + recipientUsername+ ",\n" +
                 "\n" +
                 "We're thrilled to share some exciting news with you — your article, \""+articleTitle+"\", has reached a remarkable milestone! \uD83C\uDF1F\n" +
                 "\n" +
