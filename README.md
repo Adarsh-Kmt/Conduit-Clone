@@ -4,7 +4,7 @@
 ### Database Schema Design (EER)
 ---
 <p align="center">
-  <img src="art/Conduit%20EER.png" alt="EER Diagram">
+  <img src="art/Updated%20Conduit%20EER.png" alt="EER Diagram">
 </p>
 
 ---
@@ -19,6 +19,8 @@
 | 📼  Caching DB            |           [Redis](https://redis.io/)                                 |
 | 📁  Main DB               |           [MySql](https://www.mysql.com/)                            |
 | 🔍  Caching Library       |           [Redission Library](https://github.com/redisson/redisson)  |
+| 🔍  Validation            |           [Hibernate Validator](https://hibernate.org/validator/)    |
+
   
 
 ---
@@ -32,4 +34,6 @@
 - Reply to comments.
 - Personalize your user profile by adding a profile picture.
 - Follow/Unfollow other users.
+- Subscribe to a daily digest of the latest articles, sent to you by email.
+- Receive congratulatory emails commemorating the achievement when your article breaks a favorite count milestone.
 

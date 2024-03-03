@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Daily Articles</title>
+</head>
+<body>
+<h1 th:text="${dailyTitle}">Default Daily Title</h1>
+
+<ul>
+    <!-- Iterate through the list of articles -->
+    <li th:each="article : ${articles}">
+        <h2 th:text="${article.title}">Default Article Title</h2>
+        <p th:text="${article.description}">Default Article Content</p>
+        <a href ="${link+article.slug}">read more..</a>
+    </li>
+</ul>
+</body>
+</html>

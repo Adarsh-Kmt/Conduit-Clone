@@ -1,8 +1,14 @@
 package kamathadarsh.Conduit.jooqRepository;
 
+import kamathadarsh.Conduit.CustomRecordMapper.EmailArticleDTOMapper;
+import kamathadarsh.Conduit.CustomRecordMapper.EmailUserDTOMapper;
+import kamathadarsh.Conduit.DTO.EmailDTO.EmailArticleDTO;
+import kamathadarsh.Conduit.DTO.EmailDTO.EmailUserDTO;
 import kamathadarsh.Conduit.Request.GetArticleRequest;
 import kamathadarsh.Conduit.Request.UpdateArticleRequest;
+import kamathadarsh.Conduit.Service.EmailService;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Article;
+import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.CongratulatoryEmailView;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Tag;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.records.ArticleRecord;
 import lombok.AllArgsConstructor;
@@ -10,6 +16,8 @@ import lombok.AllArgsConstructor;
 
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -20,16 +28,59 @@ import java.util.UUID;
 import static kamathadarsh.Conduit.jooq.jooqGenerated.Tables.*;
 
 
+
 @AllArgsConstructor
 @Repository
 public class JOOQArticleRepository {
 
     private final DSLContext dslContext;
 
+    private final EmailService emailService;
+
+    private final Integer milestoneInterval = 5;
+
     public String slugify(String articleTitle){
 
         String slug = articleTitle.trim().toLowerCase().replace(" ", "-");
         return slug + "-" + UUID.randomUUID();
+    }
+
+    @Scheduled(fixedRate = 1000*60)
+    @Async
+    public void periodicMilestoneCheck(){
+
+        /*
+        add a column to article table, let it be nextMilestone.
+        periodically, this method checks which articles have exceeded their nextMilestone,
+        and sends emails to all the authors of these articles.
+         */
+
+
+        List<CongratulatoryEmailView> congratsEmailList = dslContext.select()
+                .from(CONGRATULATORY_EMAIL_VIEW)
+                .fetchInto(CongratulatoryEmailView.class);
+
+
+        for(CongratulatoryEmailView congratsEmail : congratsEmailList){
+            System.out.println("sending congratulatory message to user " + congratsEmail.getUsername());
+            emailService.sendCongratulatoryEmail(congratsEmail);
+        }
+
+        if(!congratsEmailList.isEmpty()) periodicMilestoneUpdate();
+
+    }
+
+    /*
+    this method is called if articles cross their current milestone,
+    so that their nextMilestone field can be updated to the next milestone.
+     */
+    public void periodicMilestoneUpdate(){
+
+        dslContext.update(ARTICLE)
+                .set(ARTICLE.NEXT_MILESTONE, (ARTICLE.FAVOURITE_COUNT.minus((ARTICLE.FAVOURITE_COUNT.mod(DSL.inline(milestoneInterval))))).plus(DSL.inline(milestoneInterval)))
+                .where(ARTICLE.FAVOURITE_COUNT.ge(ARTICLE.NEXT_MILESTONE))
+                .execute();
+        System.out.println("periodic milestone update done.");
     }
 
     public boolean checkIfArticleExistsByArticleSlug(String articleSlug){
@@ -65,6 +116,7 @@ public class JOOQArticleRepository {
                 .set(ARTICLE.UPDATED_AT, article.getUpdatedAt())
                 .set(ARTICLE.AUTHOR_USERNAME, article.getAuthorUsername())
                 .set(ARTICLE.FAVOURITE_COUNT, article.getFavouriteCount())
+                .set(ARTICLE.NEXT_MILESTONE, article.getNextMilestone())
                 .execute();
     }
 
@@ -73,6 +125,42 @@ public class JOOQArticleRepository {
         dslContext.insertInto(USER_FAVOURITE_ARTICLE_TABLE)
                 .set(USER_FAVOURITE_ARTICLE_TABLE.ARTICLE_SLUG, articleSlug)
                 .set(USER_FAVOURITE_ARTICLE_TABLE.USERNAME, currUserUsername).execute();
+
+        Integer favouriteCount = dslContext.select(ARTICLE.FAVOURITE_COUNT)
+                .from(ARTICLE)
+                .where(ARTICLE.SLUG.eq(articleSlug)).fetchOneInto(Integer.class);
+
+        favouriteCount++;
+
+        dslContext.update(ARTICLE)
+                .set(ARTICLE.FAVOURITE_COUNT, favouriteCount)
+                .where(ARTICLE.SLUG.eq(articleSlug))
+                .execute();
+
+//        if(favouriteCount == 5 || favouriteCount % 50 == 0){
+//
+//            String authorUsername = dslContext.select(ARTICLE.AUTHOR_USERNAME)
+//                    .from(ARTICLE)
+//                    .where(ARTICLE.SLUG.eq(articleSlug))
+//                    .fetchOneInto(String.class);
+//
+//            UserTableRecord userRecord = dslContext.select(USER_TABLE.EMAIL_ID, USER_TABLE.USERNAME)
+//                    .from(USER_TABLE)
+//                    .where(USER_TABLE.USERNAME.eq(authorUsername))
+//                    .fetchOneInto(UserTableRecord.class);
+//
+//            EmailUserDTOMapper mapper = new EmailUserDTOMapper();
+//            EmailUserDTO emailAuthorUserDTO = mapper.map(userRecord);
+//
+//            String articleTitle = dslContext.select(ARTICLE.TITLE)
+//                    .from(ARTICLE)
+//                    .where(ARTICLE.SLUG.eq(articleSlug))
+//                    .fetchOneInto(String.class);
+//
+//            emailService.sendCongratulatoryEmail(emailAuthorUserDTO, articleTitle, favouriteCount);
+//        }
+
+
     }
 
     public void unfavouriteArticle(String articleSlug, String currUserUsername){
@@ -80,6 +168,18 @@ public class JOOQArticleRepository {
         dslContext.deleteFrom(USER_FAVOURITE_ARTICLE_TABLE)
                 .where(USER_FAVOURITE_ARTICLE_TABLE.ARTICLE_SLUG.eq(articleSlug))
                 .and(USER_FAVOURITE_ARTICLE_TABLE.USERNAME.eq(currUserUsername)).execute();
+
+        Integer favouriteCount = dslContext.select(ARTICLE.FAVOURITE_COUNT)
+                .from(ARTICLE)
+                .where(ARTICLE.SLUG.eq(articleSlug))
+                .fetchOneInto(Integer.class);
+
+        favouriteCount--;
+
+        dslContext.update(ARTICLE)
+                .set(ARTICLE.FAVOURITE_COUNT, favouriteCount)
+                .where(ARTICLE.SLUG.eq(articleSlug))
+                .execute();
     }
 
     public boolean articleIsFavouritedByUser(String currUserUsername, String articleSlug){
@@ -92,7 +192,6 @@ public class JOOQArticleRepository {
 
         
     }
-
     public List<Article> globalFeed(String currUserUsername, GetArticleRequest getArticleRequest){
 
 //        SelectQuery query = dslContext.selectFrom(ARTICLE).getQuery();
@@ -137,6 +236,8 @@ public class JOOQArticleRepository {
                 .where(tagFilter ? ARTICLE_TAG_TABLE.TAG_NAME.in(listOfTags):DSL.trueCondition())
                 .and(isFavourited?USER_FAVOURITE_ARTICLE_TABLE.USERNAME.eq(currUserUsername):DSL.trueCondition())
                 .and(authorFilter?ARTICLE.AUTHOR_USERNAME.eq(authorUsername):DSL.trueCondition())
+                .orderBy(ARTICLE.UPDATED_AT.desc())
+                .limit(getArticleRequest.getLimit())
                 .fetchInto(Article.class);
 
 
@@ -204,6 +305,23 @@ public class JOOQArticleRepository {
                 .where(USER_FAVOURITE_ARTICLE_TABLE.ARTICLE_SLUG.eq(articleSlug))
                 .execute();
 
+
+
+    }
+
+    public List<EmailArticleDTO> emailFeed(GetArticleRequest getArticleRequest){
+
+        List<ArticleRecord> records =  dslContext.select(
+                        ARTICLE.TITLE,
+                        ARTICLE.DESCRIPTION,
+                        ARTICLE.SLUG)
+                .from(ARTICLE)
+                .orderBy(ARTICLE.UPDATED_AT.desc())
+                .limit(getArticleRequest.getLimit())
+                .fetchInto(ArticleRecord.class);
+
+        EmailArticleDTOMapper mapper = new EmailArticleDTOMapper();
+        return records.stream().map(record -> mapper.map(record)).toList();
 
 
     }
