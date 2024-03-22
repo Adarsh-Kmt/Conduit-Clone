@@ -19,8 +19,8 @@
 | 📼  Caching DB            |           [Redis](https://redis.io/)                                 |
 | 📁  Main DB               |           [MySql](https://www.mysql.com/)                            |
 | 🔍  Caching Library       |           [Redission Library](https://github.com/redisson/redisson)  |
-| 🔍  Validation            |           [Hibernate Validator](https://hibernate.org/validator/)    |
-| 🔍  Authorization         |           [JWT tokens](https://jwt.io/)                              |
+| 💚  Validation            |           [Hibernate Validator](https://hibernate.org/validator/)    |
+| 🤖  Authorization         |           [JWT tokens](https://jwt.io/)                              |
 
   
 
