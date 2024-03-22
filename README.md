@@ -14,18 +14,20 @@
 |       Tools                |                                 Link                                 |
 |:---------------------------|:--------------------------------------------------------------------:|
 | 🤖  Language              |           [Java](https://www.java.com/en/)                           |
-| 💚  Framework             | [SpringBoot](https://spring.io/projects/spring-boot)                 |
+| 💚  Framework             |         [SpringBoot](https://spring.io/projects/spring-boot)         |
 | 📁  DB Access             |            [jOOQ](https://www.jooq.org/)                             |
 | 📼  Caching DB            |           [Redis](https://redis.io/)                                 |
 | 📁  Main DB               |           [MySql](https://www.mysql.com/)                            |
 | 🔍  Caching Library       |           [Redission Library](https://github.com/redisson/redisson)  |
-| 🔍  Validation            |           [Hibernate Validator](https://hibernate.org/validator/)    |
+| 💚  Validation            |           [Hibernate Validator](https://hibernate.org/validator/)    |
+| 🤖  Authorization         |           [JWT tokens](https://jwt.io/)                              |
 
   
 
 ---
 ### Features
 ---
+- Username Password used for authentication, JWT tokens used for authorization.
 - Create, update and delete articles.
 - Faster access to the most popular articles, using a caching system with Redis.
 - Get a global feed of articles, which can be filtered by author, tags, favourited or not.

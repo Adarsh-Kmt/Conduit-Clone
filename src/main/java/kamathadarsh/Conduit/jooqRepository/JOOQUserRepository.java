@@ -34,6 +34,15 @@ public class JOOQUserRepository {
 
         return records.stream().map(record -> mapper.map(record)).toList();
     }
+
+    public Optional<UserTable> getSecurityInformation(String username){
+
+        return Optional.ofNullable(dslContext.select(USER_TABLE.USERNAME, USER_TABLE.PASSWORD)
+                .from(USER_TABLE)
+                .where(USER_TABLE.USERNAME.eq(username))
+                .fetchOneInto(UserTable.class));
+
+    }
     public Optional<UserTable> findByUsername(String username){
 
         return Optional.ofNullable(dslContext.select(
