@@ -46,6 +46,7 @@ public class JOOQUserRepository {
                 .where(USER_TABLE.USERNAME.eq(username)).fetchOneInto(UserTable.class));
     }
 
+
     public List<String> listOfFollowingUsernames(String followerUsername){
 
         return dslContext.select(FOLLOWER_FOLLOWING_USER_TABLE.FOLLOWING_USERNAME)
