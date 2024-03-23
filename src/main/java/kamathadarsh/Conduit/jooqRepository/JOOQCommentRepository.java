@@ -88,4 +88,23 @@ public class JOOQCommentRepository {
                 .and(COMMENT.PARENT_COMMENT_ID.eq(parentCommentId))
                 .fetchInto(Comment.class);
     }
+
+
+    public List<Long> getIdOfRepliesToComment(String articleSlug, Long parentCommentId){
+
+        return dslContext.select(COMMENT.ID)
+                .from(COMMENT)
+                .where(COMMENT.ARTICLE_SLUG.eq(articleSlug))
+                .and(COMMENT.PARENT_COMMENT_ID.eq(parentCommentId))
+                .fetchInto(Long.class);
+    }
+
+    public List<Long> getAllParentCommentIdsUnderArticle(String articleSlug){
+
+        return dslContext.select(COMMENT.ID)
+                .from(COMMENT)
+                .where(COMMENT.ARTICLE_SLUG.eq(articleSlug))
+                .and(COMMENT.PARENT_COMMENT_ID.eq(0L))
+                .fetchInto(Long.class);
+    }
 }

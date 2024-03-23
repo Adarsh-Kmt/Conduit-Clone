@@ -9,6 +9,7 @@ import kamathadarsh.Conduit.Exception.CommentNotFoundException;
 
 import kamathadarsh.Conduit.Request.CommentRequest;
 import kamathadarsh.Conduit.Response.*;
+import kamathadarsh.Conduit.jooq.jooqGenerated.tables.records.CommentRecord;
 import kamathadarsh.Conduit.jooqRepository.JOOQArticleRepository;
 import kamathadarsh.Conduit.jooqRepository.JOOQCommentRepository;
 import lombok.AllArgsConstructor;
@@ -18,7 +19,9 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 
 @Service
@@ -111,6 +114,27 @@ public class CommentService {
 
     }
 
+    // delete all comments and nested comments.
+    public void BreadthFirstSearch(String articleSlug,  Long parentCommentId){
+
+        Queue<Long> q = new LinkedList<>();
+
+        q.add(parentCommentId);
+
+        while(q.isEmpty() == false){
+
+            int currSize = q.size();
+
+            for(int i = 0; i < currSize; i++){
+
+                Long replyId = q.remove();
+                List<Long> childReplyIdList = jooqCommentRepository.getIdOfRepliesToComment(articleSlug, replyId);
+                deleteComment(articleSlug, replyId);
+
+                q.addAll(childReplyIdList);
+            }
+        }
+    }
     public CustomResponse deleteComment(String articleSlug, Long commentId){
 
         try{
@@ -118,7 +142,7 @@ public class CommentService {
             if(!jooqCommentRepository.checkIfCommentExistsByIdUnderAnArticle(commentId, articleSlug))
                 throw new CommentNotFoundException("comment with id " + commentId +  " was not found.");
 
-            jooqCommentRepository.deleteCommentUnderAnArticleById(articleSlug, commentId);
+            BreadthFirstSearch(articleSlug, commentId);
 
             return SuccessResponse.builder()
                     .successMessage("comment has been deleted successfully.")
