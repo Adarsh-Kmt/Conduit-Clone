@@ -11,6 +11,7 @@ import kamathadarsh.Conduit.Request.PostArticleRequest;
 import kamathadarsh.Conduit.Request.UpdateArticleRequest;
 import kamathadarsh.Conduit.Response.*;
 import kamathadarsh.Conduit.jooqRepository.JOOQArticleRepository;
+import kamathadarsh.Conduit.jooqRepository.JOOQCommentRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,9 @@ public class ArticleService {
 
     final TagService tagService;
 
+    final CommentService commentService;
 
+    final JOOQCommentRepository jooqCommentRepository;
 
     public List<ArticleResponse> getAllArticles(String currUserUsername,
                                                 GetArticleRequest getArticleRequest)
@@ -258,6 +261,12 @@ public class ArticleService {
 
             if(article.getAuthorUsername().equals(currUserUsername)) throw new ArticleNotFoundException("only author can delete article.");
 
+            List<Long> commentIdList = jooqCommentRepository.getAllParentCommentIdsUnderArticle(articleSlug);
+
+            for(int i = 0; i < commentIdList.size(); i++){
+
+                commentService.deleteComment(articleSlug, commentIdList.get(i));
+            }
             jooqArticleRepository.deleteArticle(articleSlug);
 
             return SuccessResponse.builder().successMessage("article has been deleted successfully.").build();

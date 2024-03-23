@@ -290,10 +290,11 @@ public class JOOQArticleRepository {
                 .where(ARTICLE.SLUG.eq(articleSlug))
                 .execute();
 
-        // deleting the article also means deleting all the comments associated with it.
-        dslContext.deleteFrom(COMMENT)
-                .where(COMMENT.ARTICLE_SLUG.eq(articleSlug))
-                .execute();
+//        // deleting the article also means deleting all the comments associated with it.
+          // comment deletion done separately using breadth first search.
+//        dslContext.deleteFrom(COMMENT)
+//                .where(COMMENT.ARTICLE_SLUG.eq(articleSlug))
+//                .execute();
 
         // must delete the article slug from user favourite article table.
         dslContext.deleteFrom(USER_FAVOURITE_ARTICLE_TABLE)
