@@ -1,4 +1,4 @@
-package kamathadarsh.Conduit.DTO.CacheDTO;
+package kamathadarsh.Conduit.CacheDTO;
 
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.Article;
 import kamathadarsh.Conduit.jooq.jooqGenerated.tables.pojos.UserTable;
@@ -38,5 +38,7 @@ public class ArticleCacheDTO {
         this.updatedAt = article.getUpdatedAt();
         this.favouriteCount = article.getFavouriteCount();
         this.authorProfile = new ProfileCacheDTO(author, followerUsernameList);
+        this.body = article.getBody();
+        this.createdAt = article.getCreatedAt();
     }
 }
