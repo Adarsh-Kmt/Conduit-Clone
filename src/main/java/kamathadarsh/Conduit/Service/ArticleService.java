@@ -14,6 +14,7 @@ import kamathadarsh.Conduit.jooqRepository.JOOQArticleRepository;
 import kamathadarsh.Conduit.jooqRepository.JOOQCommentRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 
@@ -40,17 +41,17 @@ public class ArticleService {
 
     final JOOQCommentRepository jooqCommentRepository;
 
-    public List<ArticleResponse> getAllArticles(String currUserUsername,
-                                                GetArticleRequest getArticleRequest)
+    public List<ArticleResponse> getAllArticles(GetArticleRequest getArticleRequest)
     {
 
+        String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         List<Article> finalArticleList = jooqArticleRepository.globalFeed(currUserUsername, getArticleRequest);
 
         List<ArticleResponse> finalArticleResponseList = new ArrayList<>();
 
         for(Article article : finalArticleList){
 
-            finalArticleResponseList.add(createArticleResponse(currUserUsername, article));
+            finalArticleResponseList.add(createArticleResponse(article));
         }
 
         return finalArticleResponseList;
@@ -61,10 +62,10 @@ public class ArticleService {
 
 
 
-    public ArticleResponse createArticle(String currUserUsername, PostArticleRequest postArticleRequest)
+    public ArticleResponse createArticle(PostArticleRequest postArticleRequest)
     {
 
-
+        String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         String finalSlug = slugify(postArticleRequest.getTitle());
         // creating the article record.
@@ -102,16 +103,17 @@ public class ArticleService {
         }
 
 
-        return createArticleResponse(currUserUsername, newArticle);
+        return createArticleResponse(newArticle);
 
 
     }
 
 
-    public CustomResponse getArticle(String currUserUsername, String articleSlug){
+    public CustomResponse getArticle(String articleSlug){
 
         try{
 
+            String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             CustomResponse response = cacheService.getArticleFromCacheIfAvailable(currUserUsername, articleSlug);
 
             if(response instanceof ArticleResponse) return response;
@@ -123,7 +125,7 @@ public class ArticleService {
             Article article = articleExists.get();
 
             cacheService.addArticleToCache(article);
-            return createArticleResponse(currUserUsername, article);
+            return createArticleResponse(article);
 
         } catch (ArticleNotFoundException e) {
 
@@ -133,10 +135,12 @@ public class ArticleService {
 
     }
 
-    public ArticleResponse createArticleResponse(String currUserUsername, Article article){
+    public ArticleResponse createArticleResponse(Article article){
+
+        String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         String authorUsername = article.getAuthorUsername();
-        ProfileResponse authorProfile = (ProfileResponse) userService.getProfile(authorUsername, currUserUsername);
+        ProfileResponse authorProfile = (ProfileResponse) userService.getProfile(authorUsername);
         return ArticleResponse.builder()
                 .updatedAt(article.getUpdatedAt())
                 .createdAt(article.getCreatedAt())
@@ -151,9 +155,10 @@ public class ArticleService {
 
     }
 
-    public CustomResponse favouriteArticle(String currUserUsername, String articleSlug){
+    public CustomResponse favouriteArticle(String articleSlug){
 
         try{
+            String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
 
             if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found.");
@@ -170,7 +175,7 @@ public class ArticleService {
 
             Optional<Article> updatedArticle = jooqArticleRepository.findArticleBySlug(articleSlug);
 
-            return createArticleResponse(currUserUsername, updatedArticle.get());
+            return createArticleResponse(updatedArticle.get());
 
 
         }
@@ -192,10 +197,11 @@ public class ArticleService {
 
 
 
-    public CustomResponse unfavouriteArticle(String currUserUsername, String articleSlug){
+    public CustomResponse unfavouriteArticle(String articleSlug){
 
         try{
 
+            String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
 
             if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " was not found.");
@@ -212,7 +218,7 @@ public class ArticleService {
 
             Optional<Article> updatedArticle = jooqArticleRepository.findArticleBySlug(articleSlug);
 
-            return createArticleResponse(currUserUsername, updatedArticle.get());
+            return createArticleResponse(updatedArticle.get());
 
 
         }
@@ -225,13 +231,13 @@ public class ArticleService {
         }
     }
 
-    public CustomResponse updateArticle(String currUserUsername,
-                                        String articleSlug,
+    public CustomResponse updateArticle(String articleSlug,
                                         UpdateArticleRequest updateArticleRequest)
     {
 
         try{
 
+            String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
 
             if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " not found");
@@ -239,7 +245,7 @@ public class ArticleService {
             jooqArticleRepository.updateArticle(articleSlug, updateArticleRequest);
 
             Optional<Article> updatedArticleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
-            return createArticleResponse(currUserUsername, updatedArticleExists.get());
+            return createArticleResponse(updatedArticleExists.get());
 
         }
         catch(ArticleNotFoundException e){
@@ -249,10 +255,11 @@ public class ArticleService {
 
     }
 
-    public CustomResponse deleteArticle(String currUserUsername, String articleSlug){
+    public CustomResponse deleteArticle(String articleSlug){
 
         try{
 
+            String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             Optional<Article> articleExists = jooqArticleRepository.findArticleBySlug(articleSlug);
 
             if(!articleExists.isPresent()) throw new ArticleNotFoundException("article with slug " + articleSlug + " not found.");

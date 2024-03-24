@@ -26,35 +26,32 @@ public class UserController {
      */
     private final UserService userService;
 
-    @PostMapping("/api/profiles/{followerUsername}/{toBeFollowedUsername}/follow")
-    public ResponseEntity<CustomResponse> followUser(@PathVariable("followerUsername") String followerUsername,
-                                                     @PathVariable("toBeFollowedUsername") @NotNull
+    @PostMapping("/api/profiles/{toBeFollowedUsername}/follow")
+    public ResponseEntity<CustomResponse> followUser(@PathVariable("toBeFollowedUsername") @NotNull
                                                      String toBeFollowedUsername){
 
-        CustomResponse response = userService.followUser(followerUsername, toBeFollowedUsername);
+        CustomResponse response = userService.followUser(toBeFollowedUsername);
 
         HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
 
         return ResponseEntity.status(statusOfRequest).body(response);
     }
 
-    @PostMapping("/api/profiles/{followerUsername}/{toBeFollowedUsername}/unfollow")
-    public ResponseEntity<CustomResponse> unfollowUser(@PathVariable("followerUsername") String followerUsername,
-                                                       @PathVariable("toBeFollowedUsername") @NotNull
-                                                       String toBeFollowedUsername){
+    @PostMapping("/api/profiles/{toBeUnfollowedUsername}/unfollow")
+    public ResponseEntity<CustomResponse> unfollowUser(@PathVariable("toBeUnfollowedUsername") @NotNull
+                                                       String toBeUnfollowedUsername){
 
-        CustomResponse response = userService.unfollowUser(followerUsername, toBeFollowedUsername);
+        CustomResponse response = userService.unfollowUser(toBeUnfollowedUsername);
 
         HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
 
         return ResponseEntity.status(statusOfRequest).body(response);
     }
 
-    @GetMapping("/api/profiles/{currUserUsername}/{username}")
-    public ResponseEntity<CustomResponse> getProfile(@PathVariable("currUserUsername") String currUserUsername,
-                                                     @PathVariable("username") @NotNull String username){
+    @GetMapping("/api/profiles/{username}")
+    public ResponseEntity<CustomResponse> getProfile(@PathVariable("username") @NotNull String username){
 
-        CustomResponse response = userService.getProfile(username, currUserUsername);
+        CustomResponse response = userService.getProfile(username);
 
         HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
 
@@ -68,13 +65,12 @@ public class UserController {
         2) emailId field (@Email)
      */
 
-    @PutMapping("/api/{username}/user")
-    public ResponseEntity<CustomResponse> updateUser(@PathVariable("username") String username,
-                                                     @RequestPart("newProfilePicture") @ValidImage
+    @PutMapping("/api/user")
+    public ResponseEntity<CustomResponse> updateUser(@RequestPart("newProfilePicture") @ValidImage
                                                      MultipartFile newProfilePicture,
                                                      @RequestPart("userUpdateRequest") @Valid UserUpdateRequest userUpdateRequest){
 
-        CustomResponse response = userService.userUpdate(username, newProfilePicture,userUpdateRequest);
+        CustomResponse response = userService.userUpdate(newProfilePicture,userUpdateRequest);
 
         HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
 
@@ -91,17 +87,17 @@ public class UserController {
         3) profile picture file type.
 
      */
-    @PostMapping("/test/addUser")
-    public ResponseEntity<CustomResponse> addUser(@RequestPart("profilePicture") @ValidImage
-                                                      MultipartFile profilePicture,
-                                             @RequestPart("createUserRequest") @Valid CreateUserRequest createUserRequest){
-
-        CustomResponse response = userService.createUser(createUserRequest, profilePicture);
-
-        HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
-
-        return ResponseEntity.status(statusOfRequest).body(response);
-    }
+//    @PostMapping("/test/addUser")
+//    public ResponseEntity<CustomResponse> addUser(@RequestPart("profilePicture") @ValidImage
+//                                                      MultipartFile profilePicture,
+//                                             @RequestPart("createUserRequest") @Valid CreateUserRequest createUserRequest){
+//
+//        CustomResponse response = userService.createUser(createUserRequest, profilePicture);
+//
+//        HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
+//
+//        return ResponseEntity.status(statusOfRequest).body(response);
+//    }
 
     /*
     TODO:

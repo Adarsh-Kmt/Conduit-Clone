@@ -14,6 +14,7 @@ import kamathadarsh.Conduit.Request.UserUpdateRequest;
 
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,10 +35,13 @@ public class UserService {
     //private static String STOCK_PHOTO_IMAGE = "C:\\Users\\adaka\\OneDrive\\Desktop\\programming\\Springboot Projects\\Conduit-Medium-Clone\\Conduit\\src\\main\\resources\\static\\images\\blankProfilePicture";
 
 
-    public CustomResponse followUser(String followerUsername, String toBeFollowedUsername){
+    public CustomResponse followUser(String toBeFollowedUsername){
 
 
         try{
+
+            String followerUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
             Optional<UserTable> userToBeFollowed = jooqUserRepository.findByUsername(toBeFollowedUsername);
 
             Optional<UserTable> userThatFollows = jooqUserRepository.findByUsername(followerUsername);
@@ -71,10 +75,12 @@ public class UserService {
 
     }
 
-    public CustomResponse unfollowUser(String followerUsername, String toBeUnfollowedUsername) {
+    public CustomResponse unfollowUser(String toBeUnfollowedUsername) {
 
 
         try{
+
+            String followerUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
             Optional<UserTable> followerUserExists = jooqUserRepository.findByUsername(followerUsername);
             Optional<UserTable> userToBeFollowedExists = jooqUserRepository.findByUsername(toBeUnfollowedUsername);
@@ -111,10 +117,11 @@ public class UserService {
         }
     }
 
-    public CustomResponse getProfile(String username, String currUserUsername) {
+    public CustomResponse getProfile(String username) {
 
         try{
 
+            String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             Optional<UserTable> user = jooqUserRepository.findByUsername(username);
 
             Optional<UserTable> currUser = jooqUserRepository.findByUsername(currUserUsername);
@@ -142,10 +149,11 @@ public class UserService {
         }
     }
 
-    public CustomResponse userUpdate(String currUserUsername, MultipartFile newProfilePicture, UserUpdateRequest userUpdateRequest){
+    public CustomResponse userUpdate(MultipartFile newProfilePicture, UserUpdateRequest userUpdateRequest){
 
         try{
 
+            String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             Optional<UserTable> currUserExists = jooqUserRepository.findByUsername(currUserUsername);
 
             if(!currUserExists.isPresent()) throw new UserNotFoundException("user with username " + currUserUsername + " not found");

@@ -14,6 +14,7 @@ import kamathadarsh.Conduit.jooqRepository.JOOQArticleRepository;
 import kamathadarsh.Conduit.jooqRepository.JOOQCommentRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -35,10 +36,12 @@ public class CommentService {
     final JOOQCommentRepository jooqCommentRepository;
 
 
-    public CommentResponse commentToCommentResponse(String currUserUsername, Comment comment){
+    public CommentResponse commentToCommentResponse(Comment comment){
+
+        String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         String authorUsername = comment.getUserUsername();
-        ProfileResponse authorProfile = (ProfileResponse) userService.getProfile(authorUsername, currUserUsername);
+        ProfileResponse authorProfile = (ProfileResponse) userService.getProfile(authorUsername);
         return CommentResponse.builder()
                 .id(comment.getId())
                 .body(comment.getBody())
@@ -48,9 +51,11 @@ public class CommentService {
                 .build();
     }
 
-    public CustomResponse getAllCommentsUnderAnArticle(String currUserUsername, String articleSlug){
+    public CustomResponse getAllCommentsUnderAnArticle(String articleSlug){
 
         try{
+
+            String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
 
             if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " does not exist.");
@@ -61,7 +66,7 @@ public class CommentService {
 
             for(Comment comment : allComments){
 
-                allCommentResponses.add(commentToCommentResponse(currUserUsername, comment));
+                allCommentResponses.add(commentToCommentResponse(comment));
             }
 
             return new MultipleCommentResponse(allCommentResponses);
@@ -78,10 +83,11 @@ public class CommentService {
     }
 
 
-    public CustomResponse postComment(String currUserUsername, String articleSlug, CommentRequest commentRequest){
+    public CustomResponse postComment(String articleSlug, CommentRequest commentRequest){
 
         try{
 
+            String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             boolean articleExists = jooqArticleRepository.checkIfArticleExistsByArticleSlug(articleSlug);
 
             if(!articleExists) throw new ArticleNotFoundException("article with slug " + articleSlug + " does not exist.");
@@ -99,7 +105,7 @@ public class CommentService {
             Long commentId = jooqCommentRepository.createComment(comment);
 
             comment.setId(commentId);
-            CommentResponse commentResponse = commentToCommentResponse(currUserUsername, comment);
+            CommentResponse commentResponse = commentToCommentResponse(comment);
 
             return new SingleCommentResponse(commentResponse);
 
@@ -129,7 +135,7 @@ public class CommentService {
 
                 Long replyId = q.remove();
                 List<Long> childReplyIdList = jooqCommentRepository.getIdOfRepliesToComment(articleSlug, replyId);
-                deleteComment(articleSlug, replyId);
+                jooqCommentRepository.deleteCommentUnderAnArticleById(articleSlug, replyId);
 
                 q.addAll(childReplyIdList);
             }
@@ -159,10 +165,11 @@ public class CommentService {
     }
 
 
-    public CustomResponse replyToComment(String currUserUsername, String articleSlug, Long parentCommentId, CommentRequest commentRequest){
+    public CustomResponse replyToComment(String articleSlug, Long parentCommentId, CommentRequest commentRequest){
 
         try{
 
+            String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
             boolean commentExists = jooqCommentRepository.checkIfCommentExistsByIdUnderAnArticle(parentCommentId, articleSlug);
             if(!commentExists) throw new CommentNotFoundException("comment with id " + parentCommentId + " was not found");
@@ -187,10 +194,11 @@ public class CommentService {
     }
 
 
-    public CustomResponse getRepliesToComment(String currUserUsername, String articleSlug, Long parentCommentId){
+    public CustomResponse getRepliesToComment(String articleSlug, Long parentCommentId){
 
         try{
 
+            String currUserUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             boolean commentExists = jooqCommentRepository.checkIfCommentExistsByIdUnderAnArticle(parentCommentId, articleSlug);
             if(!commentExists) throw new CommentNotFoundException("comment with id " + parentCommentId + " was not found");
 
@@ -200,7 +208,7 @@ public class CommentService {
             List<CommentResponse> replyResponseList = new ArrayList<>();
 
             for(Comment reply : replyList){
-                replyResponseList.add(commentToCommentResponse(currUserUsername, reply));
+                replyResponseList.add(commentToCommentResponse(reply));
             }
 
             return new MultipleCommentResponse(replyResponseList);

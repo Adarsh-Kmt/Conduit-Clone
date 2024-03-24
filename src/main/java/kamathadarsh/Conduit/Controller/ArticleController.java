@@ -29,13 +29,12 @@ public class ArticleController {
      */
     private final ArticleService articleService;
 
-    @GetMapping("/api/user/{username}/articles")
-    public ResponseEntity<List<ArticleResponse>> getListOfArticles(@PathVariable("username") String username,
-                                                                   @RequestBody GetArticleRequest getArticleRequest)
+    @GetMapping("/api/articles/feed")
+    public ResponseEntity<List<ArticleResponse>> getListOfArticles(@RequestBody GetArticleRequest getArticleRequest)
     {
 
 
-        List<ArticleResponse> articleResponseList = articleService.getAllArticles(username, getArticleRequest);
+        List<ArticleResponse> articleResponseList = articleService.getAllArticles(getArticleRequest);
 
         return ResponseEntity.status(HttpStatus.OK).body(articleResponseList);
 
@@ -47,35 +46,32 @@ public class ArticleController {
         validate create article request:
         1) title of article - not null.
      */
-    @PostMapping("/api/user/{username}/articles")
-    public ResponseEntity<ArticleResponse> createArticle(@PathVariable("username") String currUserUsername,
-                                                         @RequestBody @Valid PostArticleRequest postArticleRequest)
+    @PostMapping("/api/articles")
+    public ResponseEntity<ArticleResponse> createArticle(@RequestBody @Valid PostArticleRequest postArticleRequest)
     {
 
-        ArticleResponse response= articleService.createArticle(currUserUsername, postArticleRequest);
+        ArticleResponse response= articleService.createArticle(postArticleRequest);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
 
     }
 
-    @GetMapping("/api/user/{username}/articles/{slug}")
-    public ResponseEntity<CustomResponse> getArticle(@PathVariable("username") String currUserUsername,
-                                                     @PathVariable("slug") @NotNull String slug)
+    @GetMapping("/api/articles/{slug}")
+    public ResponseEntity<CustomResponse> getArticle(@PathVariable("slug") @NotNull String slug)
     {
 
-        CustomResponse response = articleService.getArticle(currUserUsername, slug);
+        CustomResponse response = articleService.getArticle(slug);
 
         HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
 
         return ResponseEntity.status(statusOfRequest).body(response);
     }
 
-    @PostMapping("/api/user/{username}/articles/{slug}/favorite")
-    public ResponseEntity<CustomResponse> favouriteArticle(@PathVariable("username") String currUserUsername,
-                                                           @PathVariable("slug") @NotNull String articleSlug)
+    @PostMapping("/api/articles/{slug}/favorite")
+    public ResponseEntity<CustomResponse> favouriteArticle(@PathVariable("slug") @NotNull String articleSlug)
     {
 
-        CustomResponse response = articleService.favouriteArticle(currUserUsername, articleSlug);
+        CustomResponse response = articleService.favouriteArticle(articleSlug);
 
         HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
 
@@ -84,24 +80,22 @@ public class ArticleController {
 
     }
 
-    @DeleteMapping("/api/user/{username}/articles/{slug}/unfavorite")
-    public ResponseEntity<CustomResponse> unfavouriteArticle(@PathVariable("username") String currUserUsername,
-                                                             @PathVariable("slug") @NotNull String articleSlug)
+    @DeleteMapping("/api/articles/{slug}/unfavorite")
+    public ResponseEntity<CustomResponse> unfavouriteArticle(@PathVariable("slug") @NotNull String articleSlug)
     {
-        CustomResponse response = articleService.unfavouriteArticle(currUserUsername, articleSlug);
+        CustomResponse response = articleService.unfavouriteArticle(articleSlug);
 
         HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
 
         return ResponseEntity.status(statusOfRequest).body(response);
     }
 
-    @PutMapping("/api/user/{username}/articles/{slug}")
-    public ResponseEntity<CustomResponse> updateArticle(@PathVariable("username") String currUserUsername,
-                                                         @PathVariable("slug") @NotNull String articleSlug,
+    @PutMapping("/api/articles/{slug}")
+    public ResponseEntity<CustomResponse> updateArticle(@PathVariable("slug") @NotNull String articleSlug,
                                                          @RequestBody UpdateArticleRequest updateArticleRequest)
     {
 
-        CustomResponse response = articleService.updateArticle(currUserUsername, articleSlug, updateArticleRequest);
+        CustomResponse response = articleService.updateArticle(articleSlug, updateArticleRequest);
 
         HttpStatus statusOfRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
 
@@ -110,12 +104,11 @@ public class ArticleController {
 
     }
 
-    @DeleteMapping("/api/user/{username}/articles/{slug}")
-    public ResponseEntity<CustomResponse> deleteArticle(@PathVariable("username") String currUserUsername,
-                                                        @PathVariable("slug") @NotNull String articleSLug)
+    @DeleteMapping("/api/articles/{slug}")
+    public ResponseEntity<CustomResponse> deleteArticle(@PathVariable("slug") @NotNull String articleSLug)
     {
 
-        CustomResponse response = articleService.deleteArticle(currUserUsername, articleSLug);
+        CustomResponse response = articleService.deleteArticle(articleSLug);
 
         HttpStatus responseToRequest = (response instanceof FailureResponse)? HttpStatus.NOT_FOUND:HttpStatus.OK;
 
