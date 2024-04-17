@@ -17,7 +17,7 @@
 | 💚  Framework             |         [SpringBoot](https://spring.io/projects/spring-boot)         |
 | 📁  DB Access             |            [jOOQ](https://www.jooq.org/)                             |
 | 📼  Caching DB            |           [Redis](https://redis.io/)                                 |
-| 📁  Main DB               |           [MySql](https://www.mysql.com/)                            |
+| 📁  Main DB               |           [MySQL](https://www.mysql.com/)                            |
 | 🔍  Caching Library       |           [Redission Library](https://github.com/redisson/redisson)  |
 | 💚  Validation            |           [Hibernate Validator](https://hibernate.org/validator/)    |
 | 🤖  Authorization         |           [JWT tokens](https://jwt.io/)                              |
